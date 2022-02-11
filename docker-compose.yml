@@ -1,0 +1,23 @@
+version: "3.3"
+
+services:
+  docker-mongo:
+    image: mongo:4.4
+    ports:
+      - "27017:27017"
+
+  docker-elastic:
+    image: elasticsearch:7.10.1
+    environment:
+      - cluster.name=elasticsearch
+      - discovery.type=single-node
+      - http.host=0.0.0.0
+      - transport.host=0.0.0.0
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+
+  docker-redis:
+    image: redis:6
+    ports:
+      - "6379:6379"
