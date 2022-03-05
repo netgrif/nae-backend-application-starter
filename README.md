@@ -74,7 +74,7 @@ implementation.
 
 ## Further help
 
-If you need any help with the project you can write us via rising
+If you need any help with the project you can write us a help request as
 an [issue](https://github.com/netgrif/application-engine/issues) or engage in
 a [discussion](https://github.com/netgrif/application-engine/discussions) in
 the [NAE repository](https://github.com/netgrif/application-engine).
