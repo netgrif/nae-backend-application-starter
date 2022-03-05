@@ -21,15 +21,18 @@ class CustomRunnerController extends RunnerController {
             FlushSessionsRunner,
             MailRunner,
             PostalCodeImporter,
+            // CUSTOM IMPORT RUNNERS
 //TODO:     CUSTOM IMPORT RUNNER
 
+            // END OF CUSTOM IMPORT RUNNERS
             DemoRunner,
             QuartzSchedulerRunner,
             PdfRunner,
             FinisherRunnerSuperCreator,
+            // ADDITIONAL CUSTOM RUNNERS
 //TODO:     CUSTOM RUNNERS
             CustomRunner,
-//TODO:     CUSTOM RUNNERS END
+            // END OF ADDITIONAL CUSTOM RUNNERS
             FinisherRunner,
     ]
 
