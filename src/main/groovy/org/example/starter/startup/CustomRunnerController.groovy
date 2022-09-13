@@ -13,6 +13,7 @@ class CustomRunnerController extends RunnerController {
             AnonymousRoleRunner,
             AuthorityRunner,
             SystemUserRunner,
+            UriRunner,
             FunctionsCacheRunner,
             FilterRunner,
             GroupRunner,
@@ -28,11 +29,12 @@ class CustomRunnerController extends RunnerController {
             DemoRunner,
             QuartzSchedulerRunner,
             PdfRunner,
-            FinisherRunnerSuperCreator,
             // ADDITIONAL CUSTOM RUNNERS
 //TODO:     CUSTOM RUNNERS
+
             CustomRunner,
             // END OF ADDITIONAL CUSTOM RUNNERS
+            FinisherRunnerSuperCreator,
             FinisherRunner,
     ]
 
