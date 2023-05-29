@@ -18,6 +18,8 @@ class CustomRunnerController extends RunnerController {
             FilterRunner,
             GroupRunner,
             DefaultFiltersRunner,
+            ImpersonationRunner,
+            DashboardRunner,
             SuperCreator,
             FlushSessionsRunner,
             MailRunner,
