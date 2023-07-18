@@ -40,7 +40,7 @@
         <dependency>
             <groupId>com.netgrif</groupId>
             <artifactId>application-engine</artifactId>
-            <version>6.3.0</version>
+            <version>6.3.1</version>
         </dependency>
 
         <!-- Lombok -->
