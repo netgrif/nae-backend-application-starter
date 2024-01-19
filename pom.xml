@@ -38,7 +38,7 @@
         <dependency>
             <groupId>com.netgrif</groupId>
             <artifactId>application-engine</artifactId>
-            <version>6.3.2</version>
+            <version>6.3.3</version>
         </dependency>
 
         <!-- Lombok -->
