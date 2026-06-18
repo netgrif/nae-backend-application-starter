@@ -15,26 +15,25 @@ class CustomRunnerController extends RunnerController {
             SystemUserRunner,
             UriRunner,
             FunctionsCacheRunner,
-            FilterRunner,
+            ProcessRunner,
+            MenuRunner,
             GroupRunner,
-            DefaultFiltersRunner,
             ImpersonationRunner,
             DashboardRunner,
+            DashboardManagementRunner,
             SuperCreator,
             FlushSessionsRunner,
             MailRunner,
             PostalCodeImporter,
-//TODO:     CUSTOM IMPORT RUNNER
+            DefaultDashboardRunner,
             // CUSTOM IMPORT RUNNERS
-
+            CustomRunner,
             // END OF CUSTOM IMPORT RUNNERS
             DemoRunner,
             QuartzSchedulerRunner,
             PdfRunner,
-//TODO:     CUSTOM RUNNERS
             // ADDITIONAL CUSTOM RUNNERS
-
-            CustomRunner,
+            ViewConfigurationRunner,
             // END OF ADDITIONAL CUSTOM RUNNERS
             FinisherRunnerSuperCreator,
             FinisherRunner,
@@ -44,5 +43,4 @@ class CustomRunnerController extends RunnerController {
     protected List getOrderList() {
         return order
     }
-
 }
