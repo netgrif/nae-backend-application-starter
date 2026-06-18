@@ -161,6 +161,8 @@ class ViewConfigurationRunner extends AbstractOrderedCommandLineRunner {
         menuItemsMenuItem.menuIcon = "menu_open"
         CaseViewBody menuItemsView = menuItemsMenuItem.view as CaseViewBody
         menuItemsView.filterBody.query = "processIdentifier:menu_item"
+        menuItemsView.createCaseButtonIcon = "playlist_add"
+        menuItemsView.createCaseButtonTitle = new I18nString("Create Menu Item", ["sk":"Vytvor položku menu", "de":"Menüpunkt erstellen"])
         menuItemsView.showMoreMenu = true
         menuItemsView.allAllowedNets = false
         menuItemsView.allowedNets = ["menu_item"]
@@ -180,6 +182,7 @@ class ViewConfigurationRunner extends AbstractOrderedCommandLineRunner {
         CaseViewBody dashboardView = dashboardMenuItem.view as CaseViewBody
         dashboardView.filterBody.query = "processIdentifier:(dashboard_item OR dashboard_management)"
         dashboardView.createCaseButtonIcon = "dashboard_customize"
+        dashboardView.createCaseButtonTitle = new I18nString("Create Dashboard Item", ["sk":"Vytvor položku dashboardu", "de":"Dashboard-Element erstellen"])
         dashboardView.showMoreMenu = true
         menuItemService.createOrIgnoreMenuItem(dashboardMenuItem)
     }
