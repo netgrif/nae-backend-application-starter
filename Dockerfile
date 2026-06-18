@@ -1,14 +1,12 @@
-FROM maven:3-jdk-11 AS build
+FROM eclipse-temurin:21-jre
 MAINTAINER Netgrif <devops@netgrif.com>
+
 WORKDIR /app
-COPY src /app/src
-COPY pom.xml /app
-RUN mvn -P docker-build -DskipTests=true -f /app/pom.xml clean package install
 
+COPY target/example.jar ./app.jar
+COPY src/main/resources ./src/main/resources
 
-FROM openjdk:11-jdk
-MAINTAINER Netgrif <devops@netgrif.com>
-COPY --from=build app/target/app-exec.jar /app.jar
-COPY --from=build app/src/main/resources  /src/main/resources
+RUN mkdir -p storage log
+
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","/app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

@@ -1,40 +1,106 @@
-version: "3.3"
+name: nae-backend-starter
 
 services:
+  backend:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nae-backend-starter:local
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
+      NETGRIF_ENGINE_DATA_DATABASE_NAME: ${NETGRIF_ENGINE_DATA_DATABASE_NAME:-nae}
+      NETGRIF_ENGINE_DATA_MONGODB_URI: mongodb://docker-mongo:27017
+      NETGRIF_ENGINE_DATA_ELASTIC_URL: docker-elastic
+      NETGRIF_ENGINE_DATA_ELASTIC_PORT: "9300"
+      NETGRIF_ENGINE_DATA_ELASTIC_SEARCH_PORT: "9200"
+      NETGRIF_ENGINE_DATA_REDIS_HOST: docker-redis
+      NETGRIF_ENGINE_DATA_REDIS_PORT: "6379"
+      NETGRIF_ENGINE_DATA_REDIS_SESSION_NAMESPACE: ${NETGRIF_ENGINE_DATA_REDIS_SESSION_NAMESPACE:-netgrif}
+      NETGRIF_ENGINE_SECURITY_ENCRYPTION_PASSWORD: ${NETGRIF_ENGINE_SECURITY_ENCRYPTION_PASSWORD:-password}
+      NETGRIF_ENGINE_SECURITY_AUTH_ADMIN_PASSWORD: ${NETGRIF_ENGINE_SECURITY_AUTH_ADMIN_PASSWORD:-password}
+      NETGRIF_ENGINE_SECURITY_JWT_PRIVATE_KEY: file:/run/secrets/jwt_private_key
+    depends_on:
+      docker-mongo:
+        condition: service_healthy
+      docker-elastic:
+        condition: service_healthy
+      docker-redis:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    volumes:
+      - backend-storage:/app/storage
+      - backend-logs:/app/log
+    secrets:
+      - jwt_private_key
+
   docker-mongo:
     image: mongo:4.4
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongo", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
     ports:
-      - "27017:27017"
-    deploy:
-      resources:
-        limits:
-          cpus: "2"
-          memory: "2G"
-        reservations:
-          cpus: "0.5"
-          memory: "512M"
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongo-data:/data/db
+    cpus: 2.0
+    mem_limit: 2g
 
   docker-elastic:
     image: elasticsearch:7.17.4
+    restart: unless-stopped
     environment:
-      - cluster.name=elasticsearch
-      - discovery.type=single-node
-      - http.host=0.0.0.0
-      - xpack.security.enabled=false
-      - transport.host=0.0.0.0
+      cluster.name: elasticsearch
+      discovery.type: single-node
+      http.host: 0.0.0.0
+      transport.host: 0.0.0.0
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: -Xms1g -Xmx1g
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS 'http://localhost:9200/_cluster/health?wait_for_status=yellow' >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
     ports:
-      - "9200:9200"
-      - "9300:9300"
-    deploy:
-      resources:
-        limits:
-          cpus: "2"
-          memory: "2G"
-        reservations:
-          cpus: "0.5"
-          memory: "512M"
+      - "${ELASTIC_SEARCH_PORT:-9200}:9200"
+      - "${ELASTIC_PORT:-9300}:9300"
+    volumes:
+      - elastic-data:/usr/share/elasticsearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    cpus: 2.0
+    mem_limit: 2g
 
   docker-redis:
     image: redis:6
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  backend-storage:
+  backend-logs:
+  mongo-data:
+  elastic-data:
+  redis-data:
+
+secrets:
+  jwt_private_key:
+    file: ${JWT_PRIVATE_KEY_FILE:-./src/main/resources/certificates/private.der}

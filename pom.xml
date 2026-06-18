@@ -14,23 +14,29 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.0</version>
+        <version>3.5.8</version>
         <relativePath/>
     </parent>
 
     <properties>
-        <elasticsearch.version>7.17.2</elasticsearch.version>
-        <junit-jupiter.version>5.8.2</junit-jupiter.version>
-        <groovy.version>3.0.10</groovy.version>
-        <jasypt.version>1.9.2</jasypt.version>
-        <querydsl.version>5.0.0</querydsl.version>
-        <drools.version>7.70.0.Final</drools.version>
+        <java.version>21</java.version>
+        <maven.compiler.release>21</maven.compiler.release>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>11</java.version>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <maven.compiler.release>11</maven.compiler.release>
+
+        <elasticsearch.version>7.17.2</elasticsearch.version>
+
+        <querydsl.version>5.1.0</querydsl.version>
+        <jasypt.version>1.9.2</jasypt.version>
+        <drools-version>9.44.0.Final</drools-version>
+
+        <groovy.version>4.0.21</groovy.version>
+
+
+        <junit-jupiter.version>5.11.4</junit-jupiter.version>
+
+
     </properties>
 
     <dependencies>
@@ -38,7 +44,13 @@
         <dependency>
             <groupId>com.netgrif</groupId>
             <artifactId>application-engine</artifactId>
-            <version>6.4.2</version>
+            <version>7.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.netgrif</groupId>
+            <artifactId>nae-user-ce</artifactId>
+            <version>7.0.0</version>
         </dependency>
 
         <!-- Lombok -->
@@ -75,19 +87,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.8.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>5.8.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.8.2</version>
+            <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -126,8 +126,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>11</source>
-                    <target>11</target>
+                    <release>${java.version}</release>
                 </configuration>
             </plugin>
             <plugin>

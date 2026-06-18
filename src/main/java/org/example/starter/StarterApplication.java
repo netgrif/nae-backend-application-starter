@@ -2,8 +2,6 @@ package org.example.starter;
 
 import com.netgrif.application.engine.ApplicationEngine;
 import com.netgrif.application.engine.petrinet.domain.dataset.logic.action.ActionDelegate;
-import com.netgrif.application.engine.startup.RunnerController;
-import org.example.starter.startup.CustomRunnerController;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -26,11 +24,6 @@ public class StarterApplication {
                 .run(args);
     }
 
-    @Bean
-    @Primary
-    public RunnerController runnerController() {
-        return new CustomRunnerController();
-    }
 
     @Primary
     @Bean("actionDelegate")
