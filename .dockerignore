@@ -1,0 +1,11 @@
+.git
+.idea
+target/*
+!target/example.jar
+storage
+log
+.env
+*.iml
+*.log
+src/main/resources/certificates/private.der
+src/main/resources/certificates/keypair.pem
