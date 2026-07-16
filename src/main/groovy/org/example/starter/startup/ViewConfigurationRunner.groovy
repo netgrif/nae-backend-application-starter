@@ -5,6 +5,7 @@ import com.netgrif.application.engine.menu.domain.configurations.CaseViewBody
 import com.netgrif.application.engine.menu.domain.dashboard.DashboardItemBody
 import com.netgrif.application.engine.menu.domain.dashboard.DashboardManagementBody
 import com.netgrif.application.engine.menu.domain.templates.CustomViewTemplate
+import com.netgrif.application.engine.menu.domain.templates.FolderTemplate
 import com.netgrif.application.engine.menu.domain.templates.SimpleTaskViewTemplate
 import com.netgrif.application.engine.menu.domain.templates.TabbedCaseViewTemplate
 import com.netgrif.application.engine.menu.service.MenuItemTemplateHolder
@@ -57,12 +58,12 @@ class ViewConfigurationRunner extends AbstractOrderedCommandLineRunner {
     }
 
     void createFolders() {
-        def defaultFolder = MenuItemTemplateHolder.get(CustomViewTemplate.IDENTIFIER, "/", new I18nString("Default Menu Item")).get()
+        def defaultFolder = MenuItemTemplateHolder.get(FolderTemplate.IDENTIFIER, "/", new I18nString("Menu Item")).get()
         defaultFolder.menuIcon = "device_hub"
         defaultFolder.autoSelect = true
         defaultFolder.customViewSelector = "emptyView"
         tutorialFolder = menuItemService.createOrIgnoreMenuItem(defaultFolder)
-        def settingsFolder = MenuItemTemplateHolder.get(CustomViewTemplate.IDENTIFIER, "/", new I18nString("Settings")).get()
+        def settingsFolder = MenuItemTemplateHolder.get(FolderTemplate.IDENTIFIER, "/", new I18nString("Settings")).get()
         settingsFolder.menuIcon = "settings"
         defaultFolder.customViewSelector = "emptyView"
         this.settingsFolder = menuItemService.createOrIgnoreMenuItem(settingsFolder)
@@ -92,7 +93,7 @@ class ViewConfigurationRunner extends AbstractOrderedCommandLineRunner {
                 ])
         ).get()
         myCasesMenuItem.menuIcon = "assignment_ind"
-        myCasesMenuItem.view.filterBody.query = "author:<<me>>"
+        myCasesMenuItem.view.filterBody.query = "cases: author == '<<me>>'"
         menuItemService.createOrIgnoreMenuItem(myCasesMenuItem)
 
         MenuItemBody allTasksMenuItem = MenuItemTemplateHolder.get(
@@ -117,7 +118,7 @@ class ViewConfigurationRunner extends AbstractOrderedCommandLineRunner {
                 ])
         ).get()
         myTasksMenuItem.menuIcon = "assignment"
-        myTasksMenuItem.view.filterBody.query = "userId:<<me>>"
+        myTasksMenuItem.view.filterBody.query = "tasks: userId == '<<me>>'"
         menuItemService.createOrIgnoreMenuItem(myTasksMenuItem)
     }
 
@@ -160,12 +161,14 @@ class ViewConfigurationRunner extends AbstractOrderedCommandLineRunner {
         ).get()
         menuItemsMenuItem.menuIcon = "menu_open"
         CaseViewBody menuItemsView = menuItemsMenuItem.view as CaseViewBody
-        menuItemsView.filterBody.query = "processIdentifier:menu_item"
+        menuItemsView.filterBody.query = "cases: processIdentifier == 'menu_item'"
         menuItemsView.createCaseButtonIcon = "playlist_add"
         menuItemsView.createCaseButtonTitle = new I18nString("Create Menu Item", ["sk":"Vytvor položku menu", "de":"Menüpunkt erstellen"])
         menuItemsView.showMoreMenu = true
         menuItemsView.allAllowedNets = false
         menuItemsView.allowedNets = ["menu_item"]
+        menuItemsView.headersSortModeActive = "menu_item-nodePath"
+        menuItemsView.headersSortModeDirection = "asc"
         menuItemsView.defaultHeaders = ["meta-title", "menu_item-nodePath", "menu_item-menu_item_identifier", "menu_item-view_configuration_type"]
         menuItemService.createOrIgnoreMenuItem(menuItemsMenuItem)
 
@@ -180,7 +183,7 @@ class ViewConfigurationRunner extends AbstractOrderedCommandLineRunner {
         ).get()
         dashboardMenuItem.menuIcon = "dashboard"
         CaseViewBody dashboardView = dashboardMenuItem.view as CaseViewBody
-        dashboardView.filterBody.query = "processIdentifier:(dashboard_item OR dashboard_management)"
+        dashboardView.filterBody.query = "cases: processIdentifier in ('dashboard_item', 'dashboard_management')"
         dashboardView.createCaseButtonIcon = "dashboard_customize"
         dashboardView.createCaseButtonTitle = new I18nString("Create Dashboard Item", ["sk":"Vytvor položku dashboardu", "de":"Dashboard-Element erstellen"])
         dashboardView.showMoreMenu = true
@@ -197,6 +200,7 @@ class ViewConfigurationRunner extends AbstractOrderedCommandLineRunner {
                 (settingsDashboardItem.stringId): settingsDashboardItem.getFieldValue("item_name")
         ]
         dashboardConfig.logo = "assets/netgrif_logo.svg"
+        dashboardConfig.simpleDashboard = true
         Thread.sleep(1000)
         dashboardManagementService.updateDashboardManagement(dashboard, dashboardConfig)
     }
