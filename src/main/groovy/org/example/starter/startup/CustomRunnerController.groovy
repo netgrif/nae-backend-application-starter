@@ -34,6 +34,7 @@ class CustomRunnerController extends RunnerController {
             PdfRunner,
             // ADDITIONAL CUSTOM RUNNERS
             ViewConfigurationRunner,
+            TestUserRunner,
             // END OF ADDITIONAL CUSTOM RUNNERS
             FinisherRunnerSuperCreator,
             FinisherRunner,
