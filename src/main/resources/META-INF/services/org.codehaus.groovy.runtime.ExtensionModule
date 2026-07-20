@@ -1,0 +1,4 @@
+moduleName=nae-i18n-string-extension
+moduleVersion=1.0.0
+extensionClasses=org.example.starter.I18nStringConverter
+staticExtensionClasses=

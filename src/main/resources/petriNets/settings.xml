@@ -1,0 +1,14 @@
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+	<id>settings</id>
+	<version>1.0.0</version>
+	<initials>SET</initials>
+	<title>Settings</title>
+	<icon>device_hub</icon>
+	<defaultRole>true</defaultRole>
+	<anonymousRole>true</anonymousRole>
+	<transitionRole>false</transitionRole>
+	<role global="true">
+		<id>admin</id>
+		<title>Admin</title>
+	</role>
+</document>

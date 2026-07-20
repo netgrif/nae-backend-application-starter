@@ -39,6 +39,3 @@ public class StarterApplication {
         return new CustomActionDelegate();
     }
 }
-
-
-
