@@ -1,0 +1,2176 @@
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+	<id>sd_system</id>
+	<version>1.0.0</version>
+	<initials>SDS</initials>
+	<title>SD systém</title>
+	<icon>device_hub</icon>
+	<defaultRole>true</defaultRole>
+	<anonymousRole>true</anonymousRole>
+	<transitionRole>false</transitionRole>
+	<caseName>Ticket</caseName>
+	<roleRef>
+		<id>admin</id>
+		<caseLogic>
+			<create>true</create>
+			<delete>true</delete>
+		</caseLogic>
+	</roleRef>
+	<roleRef>
+		<id>default</id>
+		<caseLogic>
+			<create>true</create>
+			<view>true</view>
+		</caseLogic>
+	</roleRef>
+	<roleRef>
+		<id>sd_system_reader</id>
+		<caseLogic>
+			<view>true</view>
+		</caseLogic>
+	</roleRef>
+	<roleRef>
+		<id>sd_system_solver</id>
+		<caseLogic>
+			<view>true</view>
+		</caseLogic>
+	</roleRef>
+	<roleRef>
+		<id>system</id>
+		<caseLogic>
+			<create>true</create>
+			<delete>true</delete>
+		</caseLogic>
+	</roleRef>
+	<userRef>
+		<id>UL_author</id>
+		<caseLogic>
+			<create>true</create>
+			<view>true</view>
+		</caseLogic>
+	</userRef>
+	<caseEvents>
+		<event type="create">
+			<id>sd_system_create</id>
+			<actions phase="post">
+				<action id="action16">
+					<![CDATA[
+					UL_author: f.UL_author,
+					author_txt: f.author_txt;
+					def user = userService.getLoggedUser()
+					def userFieldValue = new com.netgrif.application.engine.petrinet.domain.dataset.UserFieldValue(user)
+					change UL_author value { new com.netgrif.application.engine.petrinet.domain.dataset.UserListFieldValue([userFieldValue]); }
+					def creator = useCase.author.fullName
+					change author_txt value { creator; }
+					]]>
+				</action>
+			</actions>
+		</event>
+	</caseEvents>
+	<role>
+		<id>admin</id>
+		<title>Admin</title>
+	</role>
+	<role>
+		<id>role1</id>
+		<title/>
+	</role>
+	<role>
+		<id>sd_system_reader</id>
+		<title>Pozorovateľ</title>
+	</role>
+	<role>
+		<id>sd_system_solver</id>
+		<title>Riešiteľ</title>
+	</role>
+	<role>
+		<id>system</id>
+		<title>System</title>
+	</role>
+	<function scope="process" name="addToHtml">
+		<![CDATA[
+		{txt ->
+		    def user = userService.getLoggedUser().getFullName();
+		    def creation_date = java.time.LocalDateTime.now().format(
+		        java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+		        );
+		    def block = 
+		    "<strong>"+user+"</strong>  |  " +
+		    "<strong>"+ creation_date +"</strong>" +
+		    "<p style=\"margin: 0; word-wrap: break-word; overflow-wrap: break-word;\">" +
+		    txt.trim() +
+		    "</p>";
+		    return block
+		}
+		]]>
+	</function>
+	<data type="button">
+		<id>add_comment_but</id>
+		<title/>
+		<placeholder>Add Comment</placeholder>
+		<component>
+			<name>raised</name>
+		</component>
+	</data>
+	<data type="user" immediate="true">
+		<id>assigned_user</id>
+		<title>Solver</title>
+	</data>
+	<data type="text">
+		<id>assigned_user_txt</id>
+		<title>Solver</title>
+		<init>Solver was not assigned</init>
+	</data>
+	<data type="fileList">
+		<id>attachments</id>
+		<title>Attachments</title>
+	</data>
+	<data type="text">
+		<id>author_txt</id>
+		<title>Author</title>
+	</data>
+	<data type="button">
+		<id>cancel_comment_but</id>
+		<title/>
+		<placeholder>Cancel</placeholder>
+		<component>
+			<name>raised</name>
+		</component>
+	</data>
+	<data type="enumeration_map" immediate="true">
+		<id>category</id>
+		<title>Category</title>
+		<options>
+			<option key="change">Change Request</option>
+			<option key="incident">Incident Bug</option>
+			<option key="service">️Service Request</option>
+		</options>
+		<event type="set">
+			<id>category_set</id>
+			<actions phase="post">
+				<action id="action24">
+					<![CDATA[
+					category: f.category,
+					incident_but: f.incident_but,
+					change_req_but: f.change_req_but,
+					service_req_but: f.service_req_but,
+					form_ref: f.form_ref;
+					switch(category.value){
+					    case "incident":
+					        def myTask = findTask(UseCase.tasks.find { it.transition == "t14" }.task)
+					        change form_ref value { [myTask.stringId]; }
+					        break;
+					    case "change":
+					        def myTask = findTask(UseCase.tasks.find { it.transition == "t15" }.task)
+					        change form_ref value { [myTask.stringId]; }
+					        break;
+					    case "service":
+					        def myTask = findTask(UseCase.tasks.find { it.transition == "t13" }.task)
+					        change form_ref value { [myTask.stringId]; }
+					        break;
+					    default:
+					        change form_ref value { []; }
+					        break;
+					}
+					make service_req_but, hidden on transitions when { true }
+					make change_req_but, hidden on transitions when { true}
+					make incident_but, hidden on transitions when { true }
+					]]>
+				</action>
+			</actions>
+		</event>
+	</data>
+	<data type="i18n">
+		<id>close_i18n</id>
+		<title/>
+		<init>By pressing the "Finish" button, you will move the ticket to the "Closed" status</init>
+		<component>
+			<name>text</name>
+			<property key="plainText">true</property>
+			<property key="boldText">true</property>
+			<property key="fontSize">14</property>
+		</component>
+	</data>
+	<data type="text">
+		<id>comment_txt</id>
+		<title/>
+		<placeholder>Komentár</placeholder>
+	</data>
+	<data type="taskRef">
+		<id>comments</id>
+		<title>Comms ref</title>
+	</data>
+	<data type="i18n">
+		<id>comments_i18n</id>
+		<title/>
+		<init>Comments</init>
+		<component>
+			<name>text</name>
+			<property key="fontSize">15</property>
+			<property key="boldText">true</property>
+			<property key="plainText">true</property>
+		</component>
+	</data>
+	<data type="dateTime">
+		<id>creation_date</id>
+		<title>Date of Creation</title>
+	</data>
+	<data type="text">
+		<id>description</id>
+		<title>Description</title>
+	</data>
+	<data type="taskRef">
+		<id>form_ref</id>
+		<title>Form</title>
+	</data>
+	<data type="button">
+		<id>change_req_but</id>
+		<title/>
+		<placeholder>Change Request</placeholder>
+		<event type="set">
+			<id>change_req_but_set</id>
+			<actions phase="post">
+				<action id="action22">
+					<![CDATA[
+					t3: t.t3,
+					category: f.category;
+					change category value { "change"; }
+					make category, editable on t3 when { true }
+					]]>
+				</action>
+			</actions>
+		</event>
+	</data>
+	<data type="i18n">
+		<id>i18n_0</id>
+		<title/>
+		<init>Incident Bug</init>
+		<component>
+			<name>divider</name>
+		</component>
+	</data>
+	<data type="i18n">
+		<id>i18n_1</id>
+		<title/>
+		<init>Change Request</init>
+	</data>
+	<data type="i18n">
+		<id>i18n_2</id>
+		<title/>
+		<init>Service Req</init>
+	</data>
+	<data type="button">
+		<id>incident_but</id>
+		<title/>
+		<placeholder>Incident Bug</placeholder>
+		<event type="set">
+			<id>incident_but_set</id>
+			<actions phase="post">
+				<action id="action25">
+					<![CDATA[
+					t3: t.t3,
+					category: f.category;
+					change category value { "incident"; }
+					make category, editable on t3 when { true }
+					]]>
+				</action>
+			</actions>
+		</event>
+	</data>
+	<data type="taskRef">
+		<id>new_comment_cust</id>
+		<title/>
+	</data>
+	<data type="taskRef">
+		<id>new_comment_form</id>
+		<title/>
+		<inits>
+			<init>t2</init>
+		</inits>
+	</data>
+	<data type="taskRef">
+		<id>new_comment_form_solv</id>
+		<title/>
+		<inits>
+			<init>t17</init>
+		</inits>
+	</data>
+	<data type="taskRef">
+		<id>new_comment_solv</id>
+		<title/>
+	</data>
+	<data type="i18n">
+		<id>pause_i18n</id>
+		<title/>
+		<init>Stlačením tlačidla "Dokončiť" presuniete tiket do stavu "pozastavený"</init>
+	</data>
+	<data type="enumeration_map" immediate="true">
+		<id>phase_stepper</id>
+		<title>Phase</title>
+		<options>
+			<option key="new">⚪⚪⚪</option>
+			<option key="rejected">🔴⚪⚪</option>
+			<option key="closed_rejected">🔴🔴🔴</option>
+			<option key="in_progress">🟢⚪⚪</option>
+			<option key="paused">🟢🟠⚪</option>
+			<option key="resolved">🟢🟢⚪</option>
+			<option key="reopened">🟠⚪⚪</option>
+			<option key="closed_resolved">🟢🟢🟢</option>
+		</options>
+		<init>new</init>
+	</data>
+	<data type="enumeration_map" immediate="true">
+		<id>phase_txt</id>
+		<title>Status</title>
+		<options>
+			<option key="new">New</option>
+			<option key="rejected">Rejected</option>
+			<option key="in_progress">In Progress</option>
+			<option key="paused">Paused</option>
+			<option key="resolved">Resolved</option>
+			<option key="closed">Closed</option>
+			<option key="reopened">Reopened</option>
+		</options>
+		<init>new</init>
+	</data>
+	<data type="enumeration_map">
+		<id>priority</id>
+		<title>Priority</title>
+		<options>
+			<option key="critical">Critical</option>
+			<option key="medium">Medium</option>
+			<option key="low">Low</option>
+		</options>
+		<init>medium</init>
+	</data>
+	<data type="text" immediate="true">
+		<id>process</id>
+		<title>Process</title>
+	</data>
+	<data type="taskRef">
+		<id>ref_form_category</id>
+		<title/>
+		<inits>
+			<init>t1</init>
+		</inits>
+	</data>
+	<data type="i18n">
+		<id>reopen_i18n</id>
+		<title/>
+		<init>By pressing the "Finish" button, you will move the ticket to the "In Progress" status</init>
+	</data>
+	<data type="i18n">
+		<id>replay_i18n</id>
+		<title/>
+		<init>By pressing the "Finish" button, you will move the ticket to the "In Progress" status</init>
+	</data>
+	<data type="button">
+		<id>save_comment_but</id>
+		<title/>
+		<placeholder>Save</placeholder>
+		<component>
+			<name>raised</name>
+		</component>
+	</data>
+	<data type="button">
+		<id>service_req_but</id>
+		<title/>
+		<placeholder>Service Request</placeholder>
+		<event type="set">
+			<id>service_req_but_set</id>
+			<actions phase="post">
+				<action id="action23">
+					<![CDATA[
+					t3: t.t3,
+					category: f.category;
+					change category value { "service"; }
+					make category, editable on t3 when { true }
+					]]>
+				</action>
+			</actions>
+		</event>
+	</data>
+	<data type="i18n">
+		<id>solve_i18n</id>
+		<title/>
+		<init>By pressing the "Finish" button, you will move the ticket to the "Closed" status</init>
+	</data>
+	<data type="i18n">
+		<id>start_i18n</id>
+		<title/>
+		<init>By pressing the "Finish" button, you will move the ticket to the "In progress" status.</init>
+	</data>
+	<data type="text">
+		<id>title</id>
+		<title>Title</title>
+	</data>
+	<data type="userList" immediate="true">
+		<id>UL_author</id>
+		<title>Author</title>
+	</data>
+	<transition>
+		<id>t1</id>
+		<x>272</x>
+		<y>176</y>
+		<label>Form</label>
+		<icon>settings</icon>
+		<roleRef>
+			<id>admin</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>system</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<dataGroup>
+			<id>t1_0</id>
+			<cols>6</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>title</id>
+				<logic>
+					<behavior>editable</behavior>
+					<behavior>required</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>process</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>4</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>2</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>assigned_user_txt</id>
+				<logic>
+					<behavior>hidden</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>1</y>
+					<rows>1</rows>
+					<cols>2</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>phase_txt</id>
+				<logic>
+					<behavior>hidden</behavior>
+				</logic>
+				<layout>
+					<x>2</x>
+					<y>1</y>
+					<rows>1</rows>
+					<cols>2</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>priority</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>4</x>
+					<y>1</y>
+					<rows>1</rows>
+					<cols>2</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>description</id>
+				<logic>
+					<behavior>editable</behavior>
+					<behavior>required</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>2</y>
+					<rows>2</rows>
+					<cols>6</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>htmltextarea</name>
+				</component>
+			</dataRef>
+			<dataRef>
+				<id>author_txt</id>
+				<logic>
+					<behavior>hidden</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>4</y>
+					<rows>1</rows>
+					<cols>2</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>creation_date</id>
+				<logic>
+					<behavior>hidden</behavior>
+				</logic>
+				<layout>
+					<x>2</x>
+					<y>4</y>
+					<rows>1</rows>
+					<cols>2</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>attachments</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>4</x>
+					<y>4</y>
+					<rows>1</rows>
+					<cols>2</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>comments_i18n</id>
+				<logic>
+					<behavior>hidden</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>5</y>
+					<rows>1</rows>
+					<cols>6</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>comments</id>
+				<logic>
+					<behavior>visible</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>6</y>
+					<rows>1</rows>
+					<cols>6</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+	</transition>
+	<transition>
+		<id>t10</id>
+		<x>688</x>
+		<y>144</y>
+		<label>Reopen</label>
+		<icon>refresh</icon>
+		<assignPolicy>auto</assignPolicy>
+		<roleRef>
+			<id>admin</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>sd_system_solver</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>system</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<dataGroup>
+			<id>t10_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>reopen_i18n</id>
+				<logic>
+					<behavior>visible</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>text</name>
+					<property key="plainText">true</property>
+					<property key="boldText">true</property>
+					<property key="fontSize">14</property>
+				</component>
+			</dataRef>
+		</dataGroup>
+		<event type="finish">
+			<id>t10_finish</id>
+			<actions phase="post">
+				<action id="action13">
+					<![CDATA[
+					phase: f.phase_stepper,
+					status: f.phase_txt;
+					change status value { "reopened"; }
+					change phase value { "reopened"; }
+					]]>
+				</action>
+			</actions>
+		</event>
+	</transition>
+	<transition>
+		<id>t11</id>
+		<x>592</x>
+		<y>336</y>
+		<label>Pause</label>
+		<icon>pause_circle</icon>
+		<assignPolicy>auto</assignPolicy>
+		<roleRef>
+			<id>admin</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>sd_system_solver</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>system</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<dataGroup>
+			<id>t11_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>pause_i18n</id>
+				<logic>
+					<behavior>visible</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>text</name>
+					<property key="plainText">true</property>
+					<property key="boldText">true</property>
+					<property key="fontSize">14</property>
+				</component>
+			</dataRef>
+		</dataGroup>
+		<event type="finish">
+			<id>t11_finish</id>
+			<actions phase="post">
+				<action id="action9">
+					<![CDATA[
+					phase: f.phase_stepper,
+					status: f.phase_txt;
+					change status value { "paused"; }
+					change phase value { "paused"; }
+					]]>
+				</action>
+			</actions>
+		</event>
+	</transition>
+	<transition>
+		<id>t12</id>
+		<x>784</x>
+		<y>336</y>
+		<label>Resume</label>
+		<icon>play_circle</icon>
+		<assignPolicy>auto</assignPolicy>
+		<roleRef>
+			<id>admin</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>sd_system_solver</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>system</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<dataGroup>
+			<id>t12_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>replay_i18n</id>
+				<logic>
+					<behavior>visible</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>text</name>
+					<property key="plainText">true</property>
+					<property key="boldText">true</property>
+					<property key="fontSize">14</property>
+				</component>
+			</dataRef>
+		</dataGroup>
+		<event type="finish">
+			<id>t12_finish</id>
+			<actions phase="post">
+				<action id="action10">
+					<![CDATA[
+					phase: f.phase_stepper,
+					status: f.phase_txt;
+					change status value { "in_progress"; }
+					change phase value { "in_progress"; }
+					]]>
+				</action>
+			</actions>
+		</event>
+	</transition>
+	<transition>
+		<id>t13</id>
+		<x>80</x>
+		<y>176</y>
+		<label>Service Req</label>
+		<icon>settings</icon>
+		<roleRef>
+			<id>admin</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>system</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<dataGroup>
+			<id>t13_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>i18n_2</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>divider</name>
+					<property key="dividerColor">black</property>
+				</component>
+			</dataRef>
+			<dataRef>
+				<id>ref_form_category</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>1</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+	</transition>
+	<transition>
+		<id>t14</id>
+		<x>80</x>
+		<y>48</y>
+		<label>Incident Bug</label>
+		<icon>settings</icon>
+		<roleRef>
+			<id>admin</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>system</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<dataGroup>
+			<id>t14_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>i18n_0</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>divider</name>
+				</component>
+			</dataRef>
+			<dataRef>
+				<id>ref_form_category</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>1</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+	</transition>
+	<transition>
+		<id>t15</id>
+		<x>80</x>
+		<y>112</y>
+		<label>Change Request</label>
+		<icon>settings</icon>
+		<roleRef>
+			<id>admin</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>system</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<dataGroup>
+			<id>t15_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>i18n_1</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>divider</name>
+					<property key="dividerColor">black</property>
+				</component>
+			</dataRef>
+			<dataRef>
+				<id>ref_form_category</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>1</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+	</transition>
+	<transition>
+		<id>t16</id>
+		<x>176</x>
+		<y>368</y>
+		<label>Detail</label>
+		<icon>remove_red_eye</icon>
+		<assignPolicy>auto</assignPolicy>
+		<roleRef>
+			<id>admin</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>sd_system_reader</id>
+			<logic>
+				<view>true</view>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>sd_system_solver</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>system</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<dataGroup>
+			<id>t16_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>category</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>form_ref</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>1</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<event type="get">
+					<id>form_ref_get</id>
+					<actions phase="post">
+						<action id="action46">
+							<![CDATA[
+							Frontend.reloadTask();
+							]]>
+						</action>
+					</actions>
+				</event>
+			</dataRef>
+			<dataRef>
+				<id>new_comment_form_solv</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>2</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+	</transition>
+	<transition>
+		<id>t17</id>
+		<x>272</x>
+		<y>48</y>
+		<label>Add Comment Solver</label>
+		<icon>settings</icon>
+		<roleRef>
+			<id>admin</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>system</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<dataGroup>
+			<id>t17_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>new_comment_solv</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>add_comment_but</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>2</x>
+					<y>1</y>
+					<rows>1</rows>
+					<cols>2</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>raised</name>
+				</component>
+				<event type="set">
+					<id>add_comment_but_set</id>
+					<actions phase="post">
+						<action id="action27">
+							<![CDATA[
+							trans: t.t17,
+							add_comment: f.add_comment_but,
+							cancel_comment: f.cancel_comment_but,
+							save_comment: f.save_comment_but,
+							new_comment: f.new_comment_solv;
+							if(!new_comment.value){
+							    def commentCase = createCase("comment")
+							    commentCase.setTitle("Comment-"+useCase.getTitle())
+							    workflowService.save(commentCase)
+							    change new_comment value { [commentCase.tasks.find{ it.transition == "t1"}.task] }
+							    make save_comment, editable on trans when { true }
+							    make cancel_comment, editable on trans when { true }
+							    make add_comment, hidden on trans when { true }
+							}
+							]]>
+						</action>
+					</actions>
+				</event>
+			</dataRef>
+			<dataRef>
+				<id>save_comment_but</id>
+				<logic>
+					<behavior>hidden</behavior>
+				</logic>
+				<layout>
+					<x>2</x>
+					<y>2</y>
+					<rows>1</rows>
+					<cols>1</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>raised</name>
+				</component>
+				<event type="set">
+					<id>save_comment_but_set</id>
+					<actions phase="post">
+						<action id="action30">
+							<![CDATA[
+							t4: t.t4,
+							trans: t.t17,
+							add_comment_but: f.add_comment_but,
+							cancel_comment_but: f.cancel_comment_but,
+							save_comment_but: f.save_comment_but,
+							comments: f.comments,
+							new_comment: f.new_comment_solv;
+							def commentTask = taskService.findOne(new_comment.value[0])
+							finishTask(commentTask)
+							def commentCase = workflowService.findOne(commentTask.caseId)
+							def txt = commentCase.getFieldValue("txt").toString()
+							def commentViewTaskId = commentCase.tasks.find{ it.transition == "t2" }.task
+							setData(commentViewTaskId, [
+								"parent_id": [
+										"type": "text",
+										"value": useCase.stringId
+								],
+								"txt_html": [
+									"type": "text",
+									"value": addToHtml(txt)
+								]
+							])
+							change comments value { comments.value + [commentViewTaskId] }
+							change new_comment value { [] }
+							make save_comment_but,hidden on trans when { true }
+							make cancel_comment_but,hidden on trans when { true }
+							make add_comment_but,editable on trans when { true }
+							def refresh = getData(t4)
+							refresh["form_ref"].value
+							]]>
+						</action>
+					</actions>
+				</event>
+			</dataRef>
+			<dataRef>
+				<id>cancel_comment_but</id>
+				<logic>
+					<behavior>hidden</behavior>
+				</logic>
+				<layout>
+					<x>3</x>
+					<y>2</y>
+					<rows>1</rows>
+					<cols>1</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>raised</name>
+				</component>
+				<event type="set">
+					<id>cancel_comment_but_set</id>
+					<actions phase="post">
+						<action id="action29">
+							<![CDATA[
+							trans: t.t17,
+							cancel_comment_but: f.cancel_comment_but,
+							save_comment_but: f.save_comment_but,
+							add_comment_but: f.add_comment_but,
+							new_comment: f.new_comment_solv;
+							def commentTask = taskService.findOne(new_comment.value[0])
+							change new_comment value { [] }
+							async.run{
+								workflowService.deleteCase(commentTask.caseId)
+							}
+							make save_comment_but,hidden on trans when { true }
+							make cancel_comment_but,hidden on trans when { true }
+							make add_comment_but,editable on trans when { true }
+							]]>
+						</action>
+					</actions>
+				</event>
+			</dataRef>
+		</dataGroup>
+	</transition>
+	<transition>
+		<id>t2</id>
+		<x>272</x>
+		<y>112</y>
+		<label>Add Comment cust</label>
+		<icon>settings</icon>
+		<roleRef>
+			<id>admin</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>system</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<dataGroup>
+			<id>t2_0</id>
+			<cols>6</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>new_comment_cust</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>6</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>add_comment_but</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>4</x>
+					<y>1</y>
+					<rows>1</rows>
+					<cols>2</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<event type="set">
+					<id>add_comment_but_set</id>
+					<actions phase="post">
+						<action id="action26">
+							<![CDATA[
+							trans: t.t2,
+							add_comment: f.add_comment_but,
+							cancel_comment: f.cancel_comment_but,
+							save_comment: f.save_comment_but,
+							new_comment: f.new_comment_cust;
+							if(!new_comment.value){
+							    def commentCase = createCase("comment")
+							    commentCase.setTitle("Comment-"+useCase.getTitle())
+							    workflowService.save(commentCase)
+							    change new_comment value { [commentCase.tasks.find{ it.transition == "t1"}.task] }
+							    make save_comment, editable on trans when { true }
+							    make cancel_comment, editable on trans when { true }
+							    make add_comment, hidden on trans when { true }
+							}
+							]]>
+						</action>
+					</actions>
+				</event>
+			</dataRef>
+			<dataRef>
+				<id>save_comment_but</id>
+				<logic>
+					<behavior>hidden</behavior>
+				</logic>
+				<layout>
+					<x>4</x>
+					<y>2</y>
+					<rows>1</rows>
+					<cols>1</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>raised</name>
+				</component>
+				<event type="set">
+					<id>save_comment_but_set</id>
+					<actions phase="post">
+						<action id="action31">
+							<![CDATA[
+							t16: t.t16,
+							trans: t.t2,
+							add_comment_but: f.add_comment_but,
+							cancel_comment_but: f.cancel_comment_but,
+							save_comment_but: f.save_comment_but,
+							comments: f.comments,
+							new_comment: f.new_comment_cust;
+							def commentTask = taskService.findOne(new_comment.value[0])
+							finishTask(commentTask)
+							def commentCase = workflowService.findOne(commentTask.caseId)
+							def txt = commentCase.getFieldValue("txt").toString()
+							def commentViewTaskId = commentCase.tasks.find{ it.transition == "t2" }.task
+							setData(commentViewTaskId, [
+								"parent_id": [
+										"type": "text",
+										"value": useCase.stringId
+								],
+								"txt_html": [
+									"type": "text",
+									"value": addToHtml(txt)
+								]
+							])
+							change comments value { comments.value + [commentViewTaskId] }
+							change new_comment value { [] }
+							make save_comment_but,hidden on trans when { true }
+							make cancel_comment_but,hidden on trans when { true }
+							make add_comment_but,editable on trans when { true }
+							def refresh = getData(t16)
+							refresh["form_ref"].value
+							]]>
+						</action>
+					</actions>
+				</event>
+			</dataRef>
+			<dataRef>
+				<id>cancel_comment_but</id>
+				<logic>
+					<behavior>hidden</behavior>
+				</logic>
+				<layout>
+					<x>5</x>
+					<y>2</y>
+					<rows>1</rows>
+					<cols>1</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>raised</name>
+				</component>
+				<event type="set">
+					<id>cancel_comment_but_set</id>
+					<actions phase="post">
+						<action id="action28">
+							<![CDATA[
+							trans: t.t2,
+							cancel_comment_but: f.cancel_comment_but,
+							save_comment_but: f.save_comment_but,
+							add_comment_but: f.add_comment_but,
+							new_comment: f.new_comment_cust;
+							def commentTask = taskService.findOne(new_comment.value[0])
+							change new_comment value { [] }
+							async.run{
+								workflowService.deleteCase(commentTask.caseId)
+							}
+							make save_comment_but,hidden on trans when { true }
+							make cancel_comment_but,hidden on trans when { true }
+							make add_comment_but,editable on trans when { true }
+							]]>
+						</action>
+					</actions>
+				</event>
+			</dataRef>
+		</dataGroup>
+	</transition>
+	<transition>
+		<id>t3</id>
+		<x>304</x>
+		<y>240</y>
+		<label>Create ticket</label>
+		<icon>add</icon>
+		<assignPolicy>auto</assignPolicy>
+		<roleRef>
+			<id>admin</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>system</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<userRef>
+			<id>UL_author</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</userRef>
+		<dataGroup>
+			<id>t3_0</id>
+			<cols>6</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>incident_but</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>2</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>raised</name>
+				</component>
+			</dataRef>
+			<dataRef>
+				<id>change_req_but</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>2</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>2</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>raised</name>
+				</component>
+			</dataRef>
+			<dataRef>
+				<id>service_req_but</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>4</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>2</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>raised</name>
+				</component>
+			</dataRef>
+			<dataRef>
+				<id>category</id>
+				<logic>
+					<behavior>hidden</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>1</y>
+					<rows>1</rows>
+					<cols>6</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>form_ref</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>2</y>
+					<rows>1</rows>
+					<cols>6</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+		<event type="finish">
+			<id>t3_finish</id>
+			<actions phase="pre">
+				<action id="action1">
+					<![CDATA[
+					comments_i18n: f.comments_i18n,
+					author_txt: f.author_txt,
+					status: f.phase_txt,
+					assigned_user_txt: f.assigned_user_txt,
+					creation_date: f.creation_date;
+					def creation_time = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_DATE_TIME)
+					change creation_date value { creation_time; }
+					make assigned_user_txt, visible on transitions when { true }
+					make status, visible on transitions when { true }
+					make author_txt, visible on transitions when { true }
+					make creation_date, visible on transitions when { true }
+					make comments_i18n, visible on transitions when { true }
+					]]>
+				</action>
+			</actions>
+			<actions phase="post">
+				<action id="action19">
+					<![CDATA[
+					title: f.title;
+					changeCaseProperty "title" about { title.value }
+					]]>
+				</action>
+			</actions>
+		</event>
+		<event type="cancel">
+			<id>t3_cancel</id>
+			<actions phase="post">
+				<action id="action20">
+					<![CDATA[
+					description: f.description,
+					title: f.title;
+					if(!title.value && !description.value){
+						async.run {
+							workflowService.deleteCase(useCase.stringId)
+						}
+					}
+					]]>
+				</action>
+			</actions>
+		</event>
+	</transition>
+	<transition>
+		<id>t4</id>
+		<x>304</x>
+		<y>496</y>
+		<label>View</label>
+		<icon>remove_red_eye</icon>
+		<assignPolicy>auto</assignPolicy>
+		<roleRef>
+			<id>admin</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>system</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<userRef>
+			<id>UL_author</id>
+			<logic>
+				<cancel>false</cancel>
+				<assign>true</assign>
+				<delegate>false</delegate>
+				<perform>true</perform>
+			</logic>
+		</userRef>
+		<dataGroup>
+			<id>t4_0</id>
+			<cols>6</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>form_ref</id>
+				<logic>
+					<behavior>visible</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>6</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<event type="get">
+					<id>form_ref_get</id>
+					<actions phase="post">
+						<action id="action45">
+							<![CDATA[
+							Frontend.reloadTask();
+							]]>
+						</action>
+					</actions>
+				</event>
+			</dataRef>
+			<dataRef>
+				<id>new_comment_form</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>1</y>
+					<rows>1</rows>
+					<cols>6</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+		<event type="finish">
+			<id>t4_finish</id>
+			<title>Zatvoriť</title>
+		</event>
+	</transition>
+	<transition>
+		<id>t5</id>
+		<x>560</x>
+		<y>240</y>
+		<label>Start work</label>
+		<icon>start</icon>
+		<assignPolicy>auto</assignPolicy>
+		<roleRef>
+			<id>admin</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>sd_system_solver</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>system</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<dataGroup>
+			<id>t5_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>start_i18n</id>
+				<logic>
+					<behavior>visible</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>text</name>
+					<property key="boldText">true</property>
+					<property key="fontSize">14</property>
+					<property key="plainText">true</property>
+				</component>
+			</dataRef>
+		</dataGroup>
+		<event type="finish">
+			<id>t5_finish</id>
+			<actions phase="post">
+				<action id="action4">
+					<![CDATA[
+					phase: f.phase_stepper,
+					assigned_user_txt: f.assigned_user_txt,
+					assigned_user: f.assigned_user,
+					status: f.phase_txt;
+					change status value { "in_progress" }
+					change phase value { "in_progress" }
+					change assigned_user_txt value {  assigned_user.value.getFullName(); }
+					]]>
+				</action>
+			</actions>
+		</event>
+		<event type="assign">
+			<id>t5_assign</id>
+			<actions phase="post">
+				<action id="action14">
+					<![CDATA[
+					assigned_user: f.assigned_user;
+					def assignee = userService.getLoggedUser()
+					change assigned_user value { new com.netgrif.application.engine.petrinet.domain.dataset.UserFieldValue(assignee); }
+					]]>
+				</action>
+			</actions>
+		</event>
+		<event type="cancel">
+			<id>t5_cancel</id>
+			<actions phase="post">
+				<action id="action15">
+					<![CDATA[
+					assigned_user: f.assigned_user;
+					change assigned_user value { null; }
+					]]>
+				</action>
+			</actions>
+		</event>
+	</transition>
+	<transition>
+		<id>t6</id>
+		<x>432</x>
+		<y>368</y>
+		<label>Reject</label>
+		<icon>remove_circle_outline</icon>
+		<assignPolicy>auto</assignPolicy>
+		<roleRef>
+			<id>admin</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>sd_system_solver</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>system</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<event type="finish">
+			<id>t6_finish</id>
+			<actions phase="post">
+				<action id="action3">
+					<![CDATA[
+					phase: f.phase_stepper,
+					assigned_user: f.assigned_user,
+					assigned_user_txt: f.assigned_user_txt,
+					status: f.phase_txt;
+					change status value {  "rejected" ; }
+					change phase value {  "rejected" ; }
+					change assigned_user_txt value {  assigned_user.value.getFullName(); }
+					]]>
+				</action>
+			</actions>
+		</event>
+		<event type="assign">
+			<id>t6_assign</id>
+			<actions phase="post">
+				<action id="action17">
+					<![CDATA[
+					assigned_user: f.assigned_user;
+					def assignee = userService.getLoggedUser()
+					change assigned_user value { new com.netgrif.application.engine.petrinet.domain.dataset.UserFieldValue(assignee); }
+					]]>
+				</action>
+			</actions>
+		</event>
+		<event type="cancel">
+			<id>t6_cancel</id>
+			<actions phase="post">
+				<action id="action18">
+					<![CDATA[
+					assigned_user: f.assigned_user;
+					change assigned_user value { null; }
+					]]>
+				</action>
+			</actions>
+		</event>
+	</transition>
+	<transition>
+		<id>t7</id>
+		<x>816</x>
+		<y>496</y>
+		<label>Close rejected</label>
+		<icon>remove_circle</icon>
+		<assignPolicy>auto</assignPolicy>
+		<roleRef>
+			<id>admin</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>sd_system_solver</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>system</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<dataGroup>
+			<id>t7_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>close_i18n</id>
+				<logic>
+					<behavior>visible</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+		<event type="finish">
+			<id>t7_finish</id>
+			<actions phase="post">
+				<action id="action8">
+					<![CDATA[
+					phase: f.phase_stepper,
+					status: f.phase_txt;
+					change status value { "closed"; }
+					change phase value { "closed_rejected"; }
+					]]>
+				</action>
+			</actions>
+		</event>
+	</transition>
+	<transition>
+		<id>t8</id>
+		<x>816</x>
+		<y>240</y>
+		<label>Resolve</label>
+		<icon>check_circle_outline</icon>
+		<assignPolicy>auto</assignPolicy>
+		<roleRef>
+			<id>admin</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>sd_system_solver</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>system</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<dataGroup>
+			<id>t8_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>solve_i18n</id>
+				<logic>
+					<behavior>visible</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>2</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>text</name>
+					<property key="plainText">true</property>
+					<property key="boldText">true</property>
+					<property key="fontSize">14</property>
+				</component>
+			</dataRef>
+		</dataGroup>
+		<event type="finish">
+			<id>t8_finish</id>
+			<actions phase="post">
+				<action id="action11">
+					<![CDATA[
+					status: f.phase_txt,
+					phase: f.phase_stepper;
+					change status value { "resolved"; }
+					change phase value { "resolved"; }
+					]]>
+				</action>
+			</actions>
+		</event>
+	</transition>
+	<transition>
+		<id>t9</id>
+		<x>1072</x>
+		<y>240</y>
+		<label>Close</label>
+		<icon>check_circle</icon>
+		<assignPolicy>auto</assignPolicy>
+		<roleRef>
+			<id>admin</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>sd_system_solver</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<roleRef>
+			<id>system</id>
+			<logic>
+				<perform>true</perform>
+			</logic>
+		</roleRef>
+		<dataGroup>
+			<id>t9_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>close_i18n</id>
+				<logic>
+					<behavior>visible</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>text</name>
+					<property key="plainText">true</property>
+					<property key="boldText">true</property>
+					<property key="fontSize">14</property>
+				</component>
+			</dataRef>
+		</dataGroup>
+		<event type="finish">
+			<id>t9_finish</id>
+			<actions phase="post">
+				<action id="action12">
+					<![CDATA[
+					phase: f.phase_stepper,
+					status: f.phase_txt;
+					change status value { "closed"; }
+					change phase value { "closed_resolved"; }
+					]]>
+				</action>
+			</actions>
+		</event>
+	</transition>
+	<place>
+		<id>p1</id>
+		<x>176</x>
+		<y>240</y>
+		<tokens>1</tokens>
+		<static>false</static>
+	</place>
+	<place>
+		<id>p2</id>
+		<x>432</x>
+		<y>240</y>
+		<label>Created</label>
+		<tokens>0</tokens>
+		<static>false</static>
+	</place>
+	<place>
+		<id>p3</id>
+		<x>304</x>
+		<y>368</y>
+		<label>Created</label>
+		<tokens>0</tokens>
+		<static>false</static>
+	</place>
+	<place>
+		<id>p4</id>
+		<x>432</x>
+		<y>496</y>
+		<label>Rejected</label>
+		<tokens>0</tokens>
+		<static>false</static>
+	</place>
+	<place>
+		<id>p5</id>
+		<x>1200</x>
+		<y>240</y>
+		<label>Closed</label>
+		<tokens>0</tokens>
+		<static>false</static>
+	</place>
+	<place>
+		<id>p6</id>
+		<x>688</x>
+		<y>240</y>
+		<label>In Progress</label>
+		<tokens>0</tokens>
+		<static>false</static>
+	</place>
+	<place>
+		<id>p7</id>
+		<x>944</x>
+		<y>240</y>
+		<label>Resolved</label>
+		<tokens>0</tokens>
+		<static>false</static>
+	</place>
+	<place>
+		<id>p8</id>
+		<x>688</x>
+		<y>432</y>
+		<label>Paused</label>
+		<tokens>0</tokens>
+		<static>false</static>
+	</place>
+	<arc>
+		<id>a1</id>
+		<type>regular</type>
+		<sourceId>p1</sourceId>
+		<destinationId>t3</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a10</id>
+		<type>regular</type>
+		<sourceId>t5</sourceId>
+		<destinationId>p6</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a11</id>
+		<type>regular</type>
+		<sourceId>p6</sourceId>
+		<destinationId>t8</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a12</id>
+		<type>regular</type>
+		<sourceId>t8</sourceId>
+		<destinationId>p7</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a13</id>
+		<type>regular</type>
+		<sourceId>p7</sourceId>
+		<destinationId>t9</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a14</id>
+		<type>regular</type>
+		<sourceId>t9</sourceId>
+		<destinationId>p5</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a15</id>
+		<type>regular</type>
+		<sourceId>p7</sourceId>
+		<destinationId>t10</destinationId>
+		<multiplicity>1</multiplicity>
+		<breakpoint>
+			<x>944</x>
+			<y>144</y>
+		</breakpoint>
+	</arc>
+	<arc>
+		<id>a16</id>
+		<type>regular</type>
+		<sourceId>t10</sourceId>
+		<destinationId>p2</destinationId>
+		<multiplicity>1</multiplicity>
+		<breakpoint>
+			<x>432</x>
+			<y>144</y>
+		</breakpoint>
+	</arc>
+	<arc>
+		<id>a17</id>
+		<type>regular</type>
+		<sourceId>p6</sourceId>
+		<destinationId>t11</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a18</id>
+		<type>regular</type>
+		<sourceId>t11</sourceId>
+		<destinationId>p8</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a19</id>
+		<type>regular</type>
+		<sourceId>p8</sourceId>
+		<destinationId>t12</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a2</id>
+		<type>regular</type>
+		<sourceId>t3</sourceId>
+		<destinationId>p2</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a20</id>
+		<type>regular</type>
+		<sourceId>t12</sourceId>
+		<destinationId>p6</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a21</id>
+		<type>read</type>
+		<sourceId>p3</sourceId>
+		<destinationId>t16</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a3</id>
+		<type>regular</type>
+		<sourceId>t3</sourceId>
+		<destinationId>p3</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a4</id>
+		<type>read</type>
+		<sourceId>p3</sourceId>
+		<destinationId>t4</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a5</id>
+		<type>regular</type>
+		<sourceId>p2</sourceId>
+		<destinationId>t5</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a6</id>
+		<type>regular</type>
+		<sourceId>p2</sourceId>
+		<destinationId>t6</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a7</id>
+		<type>regular</type>
+		<sourceId>t6</sourceId>
+		<destinationId>p4</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a8</id>
+		<type>regular</type>
+		<sourceId>p4</sourceId>
+		<destinationId>t7</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a9</id>
+		<type>regular</type>
+		<sourceId>t7</sourceId>
+		<destinationId>p5</destinationId>
+		<multiplicity>1</multiplicity>
+		<breakpoint>
+			<x>1200</x>
+			<y>496</y>
+		</breakpoint>
+	</arc>
+</document>

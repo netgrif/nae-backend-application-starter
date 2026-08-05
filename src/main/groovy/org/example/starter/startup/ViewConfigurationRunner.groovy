@@ -5,6 +5,7 @@ import com.netgrif.application.engine.menu.domain.configurations.CaseViewBody
 import com.netgrif.application.engine.menu.domain.dashboard.DashboardItemBody
 import com.netgrif.application.engine.menu.domain.dashboard.DashboardManagementBody
 import com.netgrif.application.engine.menu.domain.templates.CustomViewTemplate
+import com.netgrif.application.engine.menu.domain.templates.FolderTemplate
 import com.netgrif.application.engine.menu.domain.templates.SimpleTaskViewTemplate
 import com.netgrif.application.engine.menu.domain.templates.TabbedCaseViewTemplate
 import com.netgrif.application.engine.menu.service.MenuItemTemplateHolder
@@ -45,26 +46,29 @@ class ViewConfigurationRunner extends AbstractOrderedCommandLineRunner {
         log.info("All nets: ${allIdentifiers}")
     }
     private List<String> allIdentifiers = []
-    private Case tutorialFolder, settingsFolder
+    private Case tutorialFolder, settingsFolder, serviceDeskFolder
 
     @Override
     void run(String... args) throws Exception {
         createFolders()
         createDefaultViews(tutorialFolder.dataSet["nodePath"].value as String)
+        createServiceDeskViews(serviceDeskFolder.dataSet["nodePath"].value as String)
         createSettingsViews(settingsFolder.dataSet["nodePath"].value as String)
         configureDashboard()
     }
 
     void createFolders() {
-        def defaultFolder = MenuItemTemplateHolder.get(CustomViewTemplate.IDENTIFIER, "/", new I18nString("Default Menu Item")).get()
+        def defaultFolder = MenuItemTemplateHolder.get(FolderTemplate.IDENTIFIER, "/", new I18nString("Default Menu Item")).get()
         defaultFolder.menuIcon = "device_hub"
         defaultFolder.autoSelect = true
-        defaultFolder.customViewSelector = "emptyView"
-        tutorialFolder = menuItemService.createOrIgnoreMenuItem(defaultFolder)
-        def settingsFolder = MenuItemTemplateHolder.get(CustomViewTemplate.IDENTIFIER, "/", new I18nString("Settings")).get()
+        this.tutorialFolder = menuItemService.createOrIgnoreMenuItem(defaultFolder)
+
+        def sdFolder = MenuItemTemplateHolder.get(FolderTemplate.IDENTIFIER, "/", new I18nString("Service Desk")).get()
+        sdFolder.menuIcon = "support_agent"
+        this.serviceDeskFolder = menuItemService.createOrIgnoreMenuItem(sdFolder)
+
+        def settingsFolder = MenuItemTemplateHolder.get(FolderTemplate.IDENTIFIER, "/", new I18nString("Settings")).get()
         settingsFolder.menuIcon = "settings"
-        settingsFolder.allowedRoles = ["global_admin:GLOBAL_ROLE": new I18nString("Admin (\uD83C\uDF0D Global role)")]
-        defaultFolder.customViewSelector = "emptyView"
         this.settingsFolder = menuItemService.createOrIgnoreMenuItem(settingsFolder)
     }
 
@@ -160,7 +164,7 @@ class ViewConfigurationRunner extends AbstractOrderedCommandLineRunner {
         ).get()
         menuItemsMenuItem.menuIcon = "menu_open"
         CaseViewBody menuItemsView = menuItemsMenuItem.view as CaseViewBody
-        menuItemsView.filterBody.query = "cases: processIdentifier == 'menu_item'"
+        menuItemsView.filterBody.query = "cases: processIdentifier == \"menu_item\""
         menuItemsView.createCaseButtonIcon = "playlist_add"
         menuItemsView.createCaseButtonTitle = new I18nString("Create Menu Item", ["sk": "Vytvor položku menu", "de": "Menüpunkt erstellen"])
         menuItemsView.showMoreMenu = true
@@ -188,14 +192,165 @@ class ViewConfigurationRunner extends AbstractOrderedCommandLineRunner {
         menuItemService.createOrIgnoreMenuItem(dashboardMenuItem)
     }
 
+    void createServiceDeskViews(String folderUri) {
+        MenuItemBody allTicketsMenuItem = MenuItemTemplateHolder.get(
+                TabbedCaseViewTemplate.IDENTIFIER,
+                folderUri,
+                new I18nString("All tickets", [
+                        "sk": "Všetky prípady",// TODO
+                        "de": "Alle Fälle",
+                        "cz": "Všechny případy",
+                ])
+        ).get()
+        allTicketsMenuItem.menuIcon = "local_activity"
+        allTicketsMenuItem.autoSelect = true
+        CaseViewBody ticketViewBody =  allTicketsMenuItem.view as CaseViewBody
+        ticketViewBody.filterBody.query = "cases: processIdentifier == 'sd_system'"
+        ticketViewBody.requireTitleInCreation = false
+        ticketViewBody.allAllowedNets = false
+        ticketViewBody.allowedNets = ["sd_system"]
+        ticketViewBody.createCaseButtonIcon = "add"
+        ticketViewBody.createCaseButtonTitle = new I18nString("Create New Ticket")
+        ticketViewBody.defaultHeaders = [
+                "meta-author",
+                "meta-creationDate",
+                "sd_system-category",
+                "sd_system-phase_txt",
+                "sd_system-assigned_user"
+        ]
+        menuItemService.createOrIgnoreMenuItem(allTicketsMenuItem)
+
+        MenuItemBody newTicketsMenuItem = MenuItemTemplateHolder.get(
+                TabbedCaseViewTemplate.IDENTIFIER,
+                folderUri,
+                new I18nString("New tickets", [
+                        "sk": "Všetky prípady",// TODO
+                        "de": "Alle Fälle",
+                        "cz": "Všechny případy",
+                ])
+        ).get()
+        newTicketsMenuItem.menuIcon = "add_2"
+        ticketViewBody =  newTicketsMenuItem.view as CaseViewBody
+        ticketViewBody.filterBody.query = "cases: processIdentifier == 'sd_system' and data.phase_txt.value == 'New'"
+        ticketViewBody.showCreateCaseButton = false
+        menuItemService.createOrIgnoreMenuItem(newTicketsMenuItem)
+
+        MenuItemBody rejectedTicketsMenuItem = MenuItemTemplateHolder.get(
+                TabbedCaseViewTemplate.IDENTIFIER,
+                folderUri,
+                new I18nString("Rejected", [
+                        "sk": "Všetky prípady",// TODO
+                        "de": "Alle Fälle",
+                        "cz": "Všechny případy",
+                ])
+        ).get()
+        rejectedTicketsMenuItem.menuIcon = "block"
+        ticketViewBody =  rejectedTicketsMenuItem.view as CaseViewBody
+        ticketViewBody.filterBody.query = "cases: processIdentifier == 'sd_system' and data.phase_txt.value == 'Rejected'"
+        ticketViewBody.showCreateCaseButton = false
+        menuItemService.createOrIgnoreMenuItem(rejectedTicketsMenuItem)
+
+        MenuItemBody resolvedTicketsMenuItem = MenuItemTemplateHolder.get(
+                TabbedCaseViewTemplate.IDENTIFIER,
+                folderUri,
+                new I18nString("Resolved", [
+                        "sk": "Všetky prípady",// TODO
+                        "de": "Alle Fälle",
+                        "cz": "Všechny případy",
+                ])
+        ).get()
+        resolvedTicketsMenuItem.menuIcon = "check_circle"
+        ticketViewBody =  resolvedTicketsMenuItem.view as CaseViewBody
+        ticketViewBody.filterBody.query = "cases: processIdentifier == 'sd_system' and data.phase_txt.value == 'Resolved'"
+        ticketViewBody.showCreateCaseButton = false
+        menuItemService.createOrIgnoreMenuItem(resolvedTicketsMenuItem)
+
+        MenuItemBody closedTicketsMenuItem = MenuItemTemplateHolder.get(
+                TabbedCaseViewTemplate.IDENTIFIER,
+                folderUri,
+                new I18nString("Closed", [
+                        "sk": "Všetky prípady",// TODO
+                        "de": "Alle Fälle",
+                        "cz": "Všechny případy",
+                ])
+        ).get()
+        closedTicketsMenuItem.menuIcon = "stop_circle"
+        ticketViewBody =  closedTicketsMenuItem.view as CaseViewBody
+        ticketViewBody.filterBody.query = "cases: processIdentifier == 'sd_system' and data.phase_txt.value == 'Closed'"
+        ticketViewBody.showCreateCaseButton = false
+        menuItemService.createOrIgnoreMenuItem(closedTicketsMenuItem)
+
+        MenuItemBody inProgressTicketsMenuItem = MenuItemTemplateHolder.get(
+                TabbedCaseViewTemplate.IDENTIFIER,
+                folderUri,
+                new I18nString("In Progress", [
+                        "sk": "Všetky prípady",// TODO
+                        "de": "Alle Fälle",
+                        "cz": "Všechny případy",
+                ])
+        ).get()
+        inProgressTicketsMenuItem.menuIcon = "timelapse"
+        ticketViewBody =  inProgressTicketsMenuItem.view as CaseViewBody
+        ticketViewBody.filterBody.query = "cases: processIdentifier == 'sd_system' and data.phase_txt.value == 'In Progress'"
+        ticketViewBody.showCreateCaseButton = false
+        menuItemService.createOrIgnoreMenuItem(inProgressTicketsMenuItem)
+
+        MenuItemBody bugsTicketsMenuItem = MenuItemTemplateHolder.get(
+                TabbedCaseViewTemplate.IDENTIFIER,
+                folderUri,
+                new I18nString("Bugs", [
+                        "sk": "Všetky prípady",// TODO
+                        "de": "Alle Fälle",
+                        "cz": "Všechny případy",
+                ])
+        ).get()
+        bugsTicketsMenuItem.menuIcon = "bug_report"
+        ticketViewBody =  bugsTicketsMenuItem.view as CaseViewBody
+        ticketViewBody.filterBody.query = "cases: processIdentifier == 'sd_system' and data.category.value == 'Incident Bug'"
+        ticketViewBody.showCreateCaseButton = false
+        menuItemService.createOrIgnoreMenuItem(bugsTicketsMenuItem)
+
+        MenuItemBody changeRequestsTicketsMenuItem = MenuItemTemplateHolder.get(
+                TabbedCaseViewTemplate.IDENTIFIER,
+                folderUri,
+                new I18nString("Change Requests", [
+                        "sk": "Všetky prípady",// TODO
+                        "de": "Alle Fälle",
+                        "cz": "Všechny případy",
+                ])
+        ).get()
+        changeRequestsTicketsMenuItem.menuIcon = "alt_route"
+        ticketViewBody =  changeRequestsTicketsMenuItem.view as CaseViewBody
+        ticketViewBody.filterBody.query = "cases: processIdentifier == 'sd_system' and data.category.value == 'Change Request'"
+        ticketViewBody.showCreateCaseButton = false
+        menuItemService.createOrIgnoreMenuItem(changeRequestsTicketsMenuItem)
+
+        MenuItemBody serviceRequestsTicketsMenuItem = MenuItemTemplateHolder.get(
+                TabbedCaseViewTemplate.IDENTIFIER,
+                folderUri,
+                new I18nString("Service Requests", [
+                        "sk": "Všetky prípady",// TODO
+                        "de": "Alle Fälle",
+                        "cz": "Všechny případy",
+                ])
+        ).get()
+        serviceRequestsTicketsMenuItem.menuIcon = "build"
+        ticketViewBody =  serviceRequestsTicketsMenuItem.view as CaseViewBody
+        ticketViewBody.filterBody.query = "cases: processIdentifier == 'sd_system' and data.category.value == '️Service Request'"
+        ticketViewBody.showCreateCaseButton = false
+        menuItemService.createOrIgnoreMenuItem(serviceRequestsTicketsMenuItem)
+    }
+
     void configureDashboard() {
         Case dashboard = dashboardManagementService.findDashboardManagement("main_dashboard")
         def dashboardConfig = new DashboardManagementBody("main_dashboard", new I18nString("Main Dashboard", Map.of("sk", "Hlavný Dashboard", "de", "Haupt-Dashboard", "cz", "Hlavní Dashboard")))
         Case tutorialDashboardItem = dashboardItemService.getOrCreate(toDashboardItem(tutorialFolder))
         Case settingsDashboardItem = dashboardItemService.getOrCreate(toDashboardItem(settingsFolder))
+        Case serviceDeskDashboardItem = dashboardItemService.getOrCreate(toDashboardItem(serviceDeskFolder))
         dashboardConfig.dashboardItems = [
                 (tutorialDashboardItem.stringId): tutorialDashboardItem.getFieldValue("item_name"),
-                (settingsDashboardItem.stringId): settingsDashboardItem.getFieldValue("item_name")
+                (settingsDashboardItem.stringId): settingsDashboardItem.getFieldValue("item_name"),
+                (serviceDeskDashboardItem.stringId): serviceDeskDashboardItem.getFieldValue("item_name")
         ]
         dashboardConfig.logo = "assets/netgrif_logo.svg"
         dashboardConfig.simpleDashboard = true
@@ -204,12 +359,15 @@ class ViewConfigurationRunner extends AbstractOrderedCommandLineRunner {
     }
 
     DashboardItemBody toDashboardItem(Case folder) {
-        return new DashboardItemBody(
+        def item = new DashboardItemBody(
                 folder.getFieldValue("menu_item_identifier") as String,
                 folder.getStringId(),
                 folder.getFieldValue("menu_icon") as String,
                 folder.getFieldValue("menu_name") as I18nString,
                 true
         )
+        item.fontColor = "#000000b3"
+        item.iconColor = "#0f4c81"
+        return item
     }
 }

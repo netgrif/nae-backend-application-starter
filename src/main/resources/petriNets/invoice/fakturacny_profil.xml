@@ -1,0 +1,528 @@
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+	<id>fakturacny_profil</id>
+	<version>1.0.0</version>
+	<initials>FPP</initials>
+	<title>Fakturačný profil</title>
+	<icon>device_hub</icon>
+	<defaultRole>true</defaultRole>
+	<anonymousRole>true</anonymousRole>
+	<transitionRole>false</transitionRole>
+	<roleRef>
+		<id>admin</id>
+		<caseLogic>
+			<create>true</create>
+			<delete>true</delete>
+			<view>true</view>
+		</caseLogic>
+	</roleRef>
+	<roleRef>
+		<id>system</id>
+		<caseLogic>
+			<create>true</create>
+			<delete>true</delete>
+			<view>true</view>
+		</caseLogic>
+	</roleRef>
+	<role>
+		<id>admin</id>
+		<title>Admin</title>
+	</role>
+	<role>
+		<id>system</id>
+		<title>Systém</title>
+	</role>
+	<function scope="process" name="loadSubject">
+		<![CDATA[
+		{ search_ico, data_select, data_select_cache ->
+			subjects = loadSubjectFromOrsr(search_ico, data_select, data_select_cache)
+			if (!subjects) {
+				return
+			}
+			change data_select options { subjects }
+			if (subjects && subjects.size() == 1) {
+				change data_select value { data_select.options.keySet()[0] }
+			}
+		}
+		]]>
+	</function>
+	<function scope="process" name="loadSubjectFromOrsr">
+		<![CDATA[
+		{ search_ico, data_select, data_select_cache ->
+			try {
+				if (search_ico.value) {
+					def subject = orsr(byIco, search_ico.value)
+					if (!subject) {
+						return [:]
+					}
+					def address = "$subject.street $subject.streetNumber, $subject.city, $subject.postalCode" as String
+					change data_select_cache options { [(subject.id): (subject.name + ";#;" + address + ";#;" + "SK")] }
+					return [(subject.id): (subject.id + ", " + subject.name)]
+				}
+			} catch (Exception e) {
+				log.error("Failed to reach ORSR for $search_ico.value", e)
+			}
+			return [:]
+		}
+		]]>
+	</function>
+	<data type="button">
+		<id>search_ico_btn</id>
+		<title/>
+		<placeholder>Vyplniť</placeholder>
+		<event type="set">
+			<actions phase="post">
+				<action id="2">
+					<![CDATA[
+					search_ico: f.search_ico,
+					data_select: f.data_select,
+					data_select_cache: f.data_select_cache;
+					loadSubject(search_ico, data_select, data_select_cache)
+					]]>
+				</action>
+			</actions>
+		</event>
+	</data>
+	<data type="enumeration_map">
+		<id>data_select</id>
+		<title>Vybrať dodávateľa</title>
+		<event type="set">
+			<actions phase="post">
+				<action id="action_0">
+					<![CDATA[
+					nazov: f.nazov,
+					ico: f.ico,
+					sidlo: f.sidlo,
+					krajina: f.krajina,
+					data_select: f.data_select,
+					data_select_cache: f.data_select_cache;
+
+					if (data_select.value == null) {
+						change nazov value { "" }
+						change sidlo value { "" }
+						change krajina value { null }
+						change ico value { "" }
+						return
+					}
+
+					def dodData = (data_select_cache.options[data_select.value] as String)?.split(";#;")
+					change nazov value { dodData[0] }
+					change sidlo value { dodData[1] }
+					change krajina value { dodData.size() > 2 ? (dodData[2] == "CZ" ? "ČR" : dodData[2]) : null }
+					change ico value { data_select.value }
+					]]>
+				</action>
+			</actions>
+		</event>
+	</data>
+	<data type="enumeration_map">
+		<id>data_select_cache</id>
+		<title>Dodávateľ</title>
+	</data>
+	<data type="text">
+		<id>dic</id>
+		<title>DIČ</title>
+	</data>
+	<data type="text">
+		<id>email</id>
+		<title>Email</title>
+	</data>
+	<data type="taskRef">
+		<id>embeddable_form_data</id>
+		<title/>
+		<init>t4</init>
+	</data>
+	<data type="text">
+		<id>ic_dph</id>
+		<title>IČ DPH</title>
+	</data>
+	<data type="text">
+		<id>ico</id>
+		<title>IČO</title>
+	</data>
+	<data type="boolean">
+		<id>je_platca_dph</id>
+		<title>Je platcom DPH</title>
+		<init>false</init>
+	</data>
+	<data type="enumeration_map">
+		<id>krajina</id>
+		<title>Krajina</title>
+		<options>
+			<option key="SK">Slovenská republika</option>
+			<option key="CZ">Česká republika</option>
+		</options>
+	</data>
+	<data type="text">
+		<id>nazov</id>
+		<title>Názov</title>
+	</data>
+	<data type="text">
+		<id>nazov_profilu</id>
+		<title>Názov fakturačného profilu</title>
+		<event type="set">
+			<id>nazov_profilu_set</id>
+			<actions phase="post">
+				<action id="1">
+					<![CDATA[
+					nazov_profilu: f.nazov_profilu;
+					if (!nazov_profilu.value) return
+					changeCaseProperty "title" about { nazov_profilu.value }
+					]]>
+				</action>
+			</actions>
+		</event>
+	</data>
+	<data type="text">
+		<id>process_info_html</id>
+		<title/>
+		<init>&lt;h2 class="ql-align-center"&gt;Vytvorenie fakturačného profilu&lt;/h2&gt;</init>
+		<component>
+			<name>htmltextarea</name>
+		</component>
+	</data>
+	<data type="text">
+		<id>search_ico</id>
+		<title>Vyplniť podľa IČO</title>
+	</data>
+	<data type="text">
+		<id>sidlo</id>
+		<title>Sídlo</title>
+	</data>
+	<data type="text">
+		<id>text_10</id>
+		<title/>
+	</data>
+	<transition>
+		<id>t1</id>
+		<x>272</x>
+		<y>208</y>
+		<label>Vytvoriť profil</label>
+		<icon>edit</icon>
+		<assignPolicy>auto</assignPolicy>
+		<dataGroup>
+			<id>t1_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>embeddable_form_data</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+	</transition>
+	<transition>
+		<id>t2</id>
+		<x>592</x>
+		<y>208</y>
+		<label>Odstrániť</label>
+		<icon>delete</icon>
+		<dataGroup>
+			<id>t2_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>embeddable_form_data</id>
+				<logic>
+					<behavior>visible</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+	</transition>
+	<transition>
+		<id>t3</id>
+		<x>432</x>
+		<y>368</y>
+		<label>Upraviť</label>
+		<icon>edit</icon>
+		<dataGroup>
+			<id>t3_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>embeddable_form_data</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+	</transition>
+	<transition>
+		<id>t4</id>
+		<x>272</x>
+		<y>112</y>
+		<label>Fakturačný profil</label>
+		<icon>format_align_justify</icon>
+		<dataGroup>
+			<id>t4_0</id>
+			<cols>8</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>process_info_html</id>
+				<logic>
+					<behavior>visible</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>8</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>htmltextarea</name>
+				</component>
+			</dataRef>
+			<dataRef>
+				<id>nazov_profilu</id>
+				<logic>
+					<behavior>editable</behavior>
+					<behavior>required</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>1</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>search_ico</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>4</x>
+					<y>1</y>
+					<rows>1</rows>
+					<cols>3</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>search_ico_btn</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>7</x>
+					<y>1</y>
+					<rows>1</rows>
+					<cols>1</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>raised</name>
+				</component>
+			</dataRef>
+			<dataRef>
+				<id>nazov</id>
+				<logic>
+					<behavior>editable</behavior>
+					<behavior>required</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>2</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>sidlo</id>
+				<logic>
+					<behavior>editable</behavior>
+					<behavior>required</behavior>
+				</logic>
+				<layout>
+					<x>4</x>
+					<y>2</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>krajina</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>3</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>email</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>4</x>
+					<y>3</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>ico</id>
+				<logic>
+					<behavior>editable</behavior>
+					<behavior>required</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>4</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>dic</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>4</x>
+					<y>4</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>je_platca_dph</id>
+				<logic>
+					<behavior>editable</behavior>
+					<behavior>required</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>5</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>ic_dph</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>4</x>
+					<y>5</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+	</transition>
+	<place>
+		<id>p1</id>
+		<x>112</x>
+		<y>208</y>
+		<tokens>1</tokens>
+		<static>false</static>
+	</place>
+	<place>
+		<id>p2</id>
+		<x>432</x>
+		<y>208</y>
+		<tokens>0</tokens>
+		<static>false</static>
+	</place>
+	<place>
+		<id>p3</id>
+		<x>752</x>
+		<y>208</y>
+		<tokens>0</tokens>
+		<static>false</static>
+	</place>
+	<arc>
+		<id>a1</id>
+		<type>regular</type>
+		<sourceId>p1</sourceId>
+		<destinationId>t1</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a2</id>
+		<type>regular</type>
+		<sourceId>t1</sourceId>
+		<destinationId>p2</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a3</id>
+		<type>regular</type>
+		<sourceId>p2</sourceId>
+		<destinationId>t2</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a4</id>
+		<type>regular</type>
+		<sourceId>t2</sourceId>
+		<destinationId>p3</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a5</id>
+		<type>regular</type>
+		<sourceId>p2</sourceId>
+		<destinationId>t3</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a6</id>
+		<type>regular</type>
+		<sourceId>t3</sourceId>
+		<destinationId>p2</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+</document>

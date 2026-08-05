@@ -1,0 +1,241 @@
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+	<id>menu_import</id>
+	<initials>MEI</initials>
+	<title>Menu import</title>
+	<icon>device_hub</icon>
+	<defaultRole>true</defaultRole>
+	<anonymousRole>true</anonymousRole>
+	<transitionRole>false</transitionRole>
+	<processEvents>
+		<event type="upload">
+			<id>new_model_upload</id>
+			<actions phase="post">
+				<action id="1">
+					<![CDATA[
+
+					def headers = ["meta-title", "faktura-phase", "faktura-status_stepper"]
+					def fak_menuItemBody = new com.netgrif.application.engine.objects.workflow.domain.menu.MenuItemBody(
+						"/faktury",
+						"faktury",
+						new com.netgrif.application.engine.objects.petrinet.domain.I18nString("Invoices", ["sk": "Faktúry"]),
+						"request_quote"
+					)
+					def filterBody = new com.netgrif.application.engine.objects.workflow.domain.menu.FilterBody()
+					filterBody.setTitle(fak_menuItemBody.menuName)
+					filterBody.setQuery("processIdentifier:faktura")
+					filterBody.setType("Case")
+					filterBody.setAllowedNets(["faktura"])
+					filterBody.setIcon(fak_menuItemBody.menuIcon)
+					filterBody.setVisibility("private")
+					filterBody.setMetadata(null)
+
+					fak_menuItemBody.setView(createLegacyMenuItemViews(filterBody,headers, headers))
+					fak_menuItemBody.setUseTabbedView(true)
+
+        			def fak_menuItem = createMenuItem(fak_menuItemBody)
+
+					def ocrConfig_menuItemBody = new com.netgrif.application.engine.objects.workflow.domain.menu.MenuItemBody(
+						"/",
+						"ocr_config",
+						new com.netgrif.application.engine.objects.petrinet.domain.I18nString("OCR Configuration", ["sk": "OCR Konfigurácia", "en":"OCR Configuration"]),
+						"document_scanner"
+					)
+					def ocrConfig_menuItem = createFilterInMenu(ocrConfig_menuItemBody,"processIdentifier:ocr_config","Case","private",["ocr_config"], null)
+
+					def sent_inv = new com.netgrif.application.engine.objects.workflow.domain.menu.MenuItemBody(
+						"/faktury",
+						"sent_inv",
+						new com.netgrif.application.engine.objects.petrinet.domain.I18nString("Send", ["sk": "Odoslať"]),
+						"send"
+					)
+
+					filterBody.setTitle(sent_inv.menuName)
+					filterBody.setQuery("processIdentifier:faktura AND taskIds:t2")
+					filterBody.setIcon(sent_inv.menuIcon)
+					sent_inv.setView(createLegacyMenuItemViews(filterBody,headers, headers))
+					sent_inv.setUseTabbedView(true)
+
+        			createMenuItem(sent_inv)
+
+					def close_inv = new com.netgrif.application.engine.objects.workflow.domain.menu.MenuItemBody(
+						"/faktury",
+						"close_inv",
+						new com.netgrif.application.engine.objects.petrinet.domain.I18nString("Close", ["sk": "Uzavrieť"]),
+						"done_all"
+					)
+					filterBody.setTitle(close_inv.menuName)
+					filterBody.setQuery("processIdentifier:faktura AND taskIds:t3")
+					filterBody.setIcon(close_inv.menuIcon)
+					close_inv.setView(createLegacyMenuItemViews(filterBody,headers, headers))
+					close_inv.setUseTabbedView(true)
+        			createMenuItem(close_inv)
+
+					def approve_inv = new com.netgrif.application.engine.objects.workflow.domain.menu.MenuItemBody(
+						"/faktury",
+						"approve_inv",
+						new com.netgrif.application.engine.objects.petrinet.domain.I18nString("Approve", ["sk": "Schváliť"]),
+						"done"
+					)
+					filterBody.setTitle(approve_inv.menuName)
+					filterBody.setQuery("processIdentifier:faktura AND taskIds:t7")
+					filterBody.setIcon(approve_inv.menuIcon)
+					approve_inv.setView(createLegacyMenuItemViews(filterBody,headers, headers))
+					approve_inv.setUseTabbedView(true)
+        			createMenuItem(approve_inv)
+
+					def edit_inv = new com.netgrif.application.engine.objects.workflow.domain.menu.MenuItemBody(
+						"/faktury",
+						"edit_inv",
+						new com.netgrif.application.engine.objects.petrinet.domain.I18nString("Edit", ["sk": "Upraviť"]),
+						"edit"
+					)
+					filterBody.setTitle(edit_inv.menuName)
+					filterBody.setQuery("processIdentifier:faktura AND taskIds:t4")
+					filterBody.setIcon(edit_inv.menuIcon)
+					edit_inv.setView(createLegacyMenuItemViews(filterBody,headers, headers))
+					edit_inv.setUseTabbedView(true)
+        			createMenuItem(edit_inv)
+
+
+					def set_approvers = new com.netgrif.application.engine.objects.workflow.domain.menu.MenuItemBody(
+						"/faktury",
+						"set_approvers",
+						new com.netgrif.application.engine.objects.petrinet.domain.I18nString("Assign approvers", ["sk": "Výber schvalovateľov"]),
+						"assignment_add"
+					)
+					filterBody.setTitle(set_approvers.menuName)
+					filterBody.setQuery("processIdentifier:faktura AND taskIds:t9")
+					filterBody.setIcon(set_approvers.menuIcon)
+					set_approvers.setView(createLegacyMenuItemViews(filterBody,headers, headers))
+					set_approvers.setUseTabbedView(true)
+        			createMenuItem(set_approvers)
+
+
+        			def sd_system_menuItemBody = new com.netgrif.application.engine.objects.workflow.domain.menu.MenuItemBody(
+						"/sd_system",
+						"sd_system",
+						new com.netgrif.application.engine.objects.petrinet.domain.I18nString("Service Desk"),
+						"contact_support"
+					)
+					filterBody.setTitle(sd_system_menuItemBody.menuName)
+					filterBody.setQuery("processIdentifier:sd_system")
+					filterBody.setAllowedNets(["sd_system"])
+					filterBody.setIcon(sd_system_menuItemBody.menuIcon)
+
+					def sd_system_viewBody = createLegacyMenuItemViews(
+						filterBody,
+						["sd_system-category","meta-title","sd_system-phase_txt", "sd_system-phase_stepper","sd_system-process","meta-author","meta-creationDate","sd_system-assigned_user"],
+						["meta-caseTitleSortable","meta-title","meta-user","meta-assign-date"]
+					)
+					sd_system_viewBody.setRequireTitleInCreation(false)
+					sd_system_menuItemBody.setView(sd_system_viewBody)
+					sd_system_menuItemBody.setUseTabbedView(true)
+
+        			def sd_system_menuItem = createMenuItem(sd_system_menuItemBody)
+
+
+        			def sd_myTickets_menuItemBody = new com.netgrif.application.engine.objects.workflow.domain.menu.MenuItemBody(
+						"/sd_system",
+						"my_tickets",
+						new com.netgrif.application.engine.objects.petrinet.domain.I18nString("Moje tickety"),
+						"local_activity"
+					)
+					filterBody.setTitle(sd_myTickets_menuItemBody.menuName)
+					filterBody.setQuery("processIdentifier:sd_system AND (dataSet.UL_author.userIdValue:<<me>> OR dataSet.assigned_user.userIdValue:<<me>>)")
+					filterBody.setAllowedNets(["sd_system"])
+					filterBody.setIcon(sd_myTickets_menuItemBody.menuIcon)
+
+					def sd_system_my_tickets_viewBody = createLegacyMenuItemViews(
+						filterBody,
+						["sd_system-category","meta-title","sd_system-phase_txt", "sd_system-phase_stepper","sd_system-process","meta-author","meta-creationDate","sd_system-assigned_user"],
+						["meta-caseTitleSortable","meta-title","meta-user","meta-assign-date"]
+					)
+					sd_system_my_tickets_viewBody.setShowCreateCaseButton(false)
+					sd_myTickets_menuItemBody.setView(sd_system_my_tickets_viewBody)
+					sd_myTickets_menuItemBody.setUseTabbedView(true)
+
+					createMenuItem(sd_myTickets_menuItemBody)
+
+
+					def sd_identifier = "sd_system"
+					def processId_sd = "processIdentifier:sd_system"
+					[
+						[
+							identifier: "task_new",
+							name: "Nové úlohy",
+							icon: "pending",
+							filterQuery: " AND dataSet.phase_txt.keyValue:new"
+						],[
+							identifier: "task_in_progress",
+							name: "Rozpracované úlohy",
+							icon: "start",
+							filterQuery: " AND (NOT (dataSet.phase_txt.keyValue:new) AND NOT (dataSet.phase_txt.keyValue:closed))"
+						],[
+							identifier: "tasks_paused",
+							name: "Pozastavené úlohy",
+							icon: "pause",
+							filterQuery: " AND dataSet.phase_txt.keyValue:paused"
+						],[
+							identifier: "task_closed",
+							name: "Uzavreté úlohy",
+							icon: "done",
+							filterQuery: " AND dataSet.phase_txt.keyValue:closed"
+						]
+					].each{ item ->
+						def menuItemBody = new com.netgrif.application.engine.objects.workflow.domain.menu.MenuItemBody(
+							"/sd_system",
+							item.identifier,
+							new com.netgrif.application.engine.objects.petrinet.domain.I18nString(item.name),
+							item.icon
+						)
+						menuItemBody.setAllowedRoles(
+							collectRolesForPreferenceItem([
+								"admin": sd_identifier,
+								"system": sd_identifier,
+								"sd_system_reader": sd_identifier,
+								"sd_system_solver": sd_identifier
+							])
+						)
+
+						filterBody.setTitle(menuItemBody.menuName)
+						filterBody.setQuery(processId_sd.concat(item.filterQuery))
+						filterBody.setIcon(menuItemBody.menuIcon)
+
+						def viewBody = createLegacyMenuItemViews(
+							filterBody,
+							["sd_system-category", "sd_system-phase_stepper", "meta-title","meta-author", "meta-creationDate","sd_system-assigned_user"],
+							["meta-title", "meta-author"],
+						)
+						viewBody.setShowCreateCaseButton(false)
+
+						menuItemBody.setView(viewBody)
+						menuItemBody.setUseTabbedView(true)
+
+						createMenuItem(menuItemBody)
+					}
+
+                    com.netgrif.application.engine.objects.workflow.domain.menu.dashboard.DashboardItemBody fak_dashboardItemBody = new com.netgrif.application.engine.objects.workflow.domain.menu.dashboard.DashboardItemBody("main", fak_menuItem.stringId, "request_quote", new com.netgrif.application.engine.objects.petrinet.domain.I18nString("Internal SD"), true)
+					fak_dashboardItemBody.setMenuItems(fak_menuItem.stringId)
+        			def fak_DashboardItem = createDashboardItem(fak_dashboardItemBody)
+
+        			def ocrConfig_dashboardItemBody = new com.netgrif.application.engine.objects.workflow.domain.menu.dashboard.DashboardItemBody("main", ocrConfig_menuItem.stringId, "document_scanner", new com.netgrif.application.engine.objects.petrinet.domain.I18nString("Internal SD"), true)
+					ocrConfig_dashboardItemBody.setMenuItems(ocrConfig_menuItem.stringId)
+        			def ocrConfig_DashboardItem = createDashboardItem(ocrConfig_dashboardItemBody)
+
+                    com.netgrif.application.engine.objects.workflow.domain.menu.dashboard.DashboardManagementBody dashManBody = new com.netgrif.application.engine.objects.workflow.domain.menu.dashboard.DashboardManagementBody("main_dashboard", new com.netgrif.application.engine.objects.petrinet.domain.I18nString("Main Dashboard"))
+					dashManBody.setLogo("assets/img/logo.png")
+					dashManBody.setLogoutDashboard(true)
+
+					def mainDashboardCase = createDashboardManagement(dashManBody)
+
+                    def dashboardManagementBody = new com.netgrif.application.engine.objects.workflow.domain.menu.dashboard.DashboardManagementBody()
+                    dashboardManagementBody.setDashboardItems([(ocrConfig_DashboardItem.stringId): ocrConfig_DashboardItem.title, (fak_DashboardItem.stringId): fak_DashboardItem.title])
+
+                    updateDashboardManagement(mainDashboardCase, dashboardManagementBody)
+
+					]]>
+				</action>
+			</actions>
+		</event>
+	</processEvents>
+</document>

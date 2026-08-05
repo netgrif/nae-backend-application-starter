@@ -20,5 +20,7 @@ class CustomRunner extends AbstractOrderedCommandLineRunner {
     @Override
     void run(String... args) throws Exception {
         importHelper.upsertNet("settings.xml", "settings")
+        importHelper.upsertNet("service_desk/sd_system.xml", "sd_system")
+        importHelper.upsertNet("service_desk/comment.xml", "comment")
     }
 }
