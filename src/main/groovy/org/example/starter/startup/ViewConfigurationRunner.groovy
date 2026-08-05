@@ -164,12 +164,14 @@ class ViewConfigurationRunner extends AbstractOrderedCommandLineRunner {
         ).get()
         menuItemsMenuItem.menuIcon = "menu_open"
         CaseViewBody menuItemsView = menuItemsMenuItem.view as CaseViewBody
-        menuItemsView.filterBody.query = "cases: processIdentifier == \"menu_item\""
+        menuItemsView.filterBody.query = "cases: processIdentifier == 'menu_item'"
         menuItemsView.createCaseButtonIcon = "playlist_add"
         menuItemsView.createCaseButtonTitle = new I18nString("Create Menu Item", ["sk": "Vytvor položku menu", "de": "Menüpunkt erstellen"])
         menuItemsView.showMoreMenu = true
         menuItemsView.allAllowedNets = false
         menuItemsView.allowedNets = ["menu_item"]
+        menuItemsView.headersSortModeActive = "menu_item-nodePath"
+        menuItemsView.headersSortModeDirection = "asc"
         menuItemsView.defaultHeaders = ["meta-title", "menu_item-nodePath", "menu_item-menu_item_identifier", "menu_item-view_configuration_type"]
         menuItemsView.requireTitleInCreation = false
         menuItemService.createOrIgnoreMenuItem(menuItemsMenuItem)
