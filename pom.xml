@@ -14,7 +14,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.8</version>
+        <version>4.1.0</version>
         <relativePath/>
     </parent>
 
@@ -25,17 +25,15 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <elasticsearch.version>7.17.2</elasticsearch.version>
-
         <querydsl.version>5.1.0</querydsl.version>
         <jasypt.version>1.9.2</jasypt.version>
         <drools-version>9.44.0.Final</drools-version>
 
-        <groovy.version>4.0.21</groovy.version>
+        <groovy.version>5.0.5</groovy.version>
 
 
-        <junit-jupiter.version>5.11.4</junit-jupiter.version>
-
+        <junit-jupiter.version>6.0.3</junit-jupiter.version>
+        <junit-platform.version>6.0.3</junit-platform.version>
 
     </properties>
 
@@ -44,13 +42,13 @@
         <dependency>
             <groupId>com.netgrif</groupId>
             <artifactId>application-engine</artifactId>
-            <version>7.0.0</version>
+            <version>7.0.1</version>
         </dependency>
 
         <dependency>
             <groupId>com.netgrif</groupId>
             <artifactId>nae-user-ce</artifactId>
-            <version>7.0.0</version>
+            <version>7.0.1</version>
         </dependency>
 
         <!-- Lombok -->
