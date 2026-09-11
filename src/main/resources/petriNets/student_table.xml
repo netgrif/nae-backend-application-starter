@@ -1,0 +1,731 @@
+<document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://petriflow.com/petriflow.schema.xsd">
+	<id>student_table</id>
+	<version>1.0.0</version>
+	<initials>STD</initials>
+	<title>Student table without lock one read</title>
+	<icon>device_hub</icon>
+	<defaultRole>true</defaultRole>
+	<anonymousRole>true</anonymousRole>
+	<transitionRole>false</transitionRole>
+	<caseEvents>
+		<event type="create">
+			<id>new_model_create</id>
+			<actions phase="post">
+				<action id="action4">
+					<![CDATA[
+					my_id: f.my_id;
+					change my_id value { useCase.stringId; }
+					
+					log.info("set my id")
+					
+					]]>
+				</action>
+			</actions>
+		</event>
+		<event type="delete">
+			<id>student_table_without_lock_one_read_delete</id>
+			<actions phase="pre">
+				<action id="action9">
+					<![CDATA[
+					my_id: f.my_id,
+					referenced_cases: f.referenced_cases;
+					referenced_cases.each { reference_id ->
+					def reference_case = findCase({it._id.eq(reference_id)});
+					setData("interface_data", reference_case, ["reference_to_remove": ["value": my_id.value, "type": "text"]]);
+					}
+					]]>
+				</action>
+			</actions>
+		</event>
+	</caseEvents>
+	<data type="date">
+		<id>birthday</id>
+		<title>Birthday</title>
+	</data>
+	<data type="taskRef">
+		<id>my_data</id>
+		<title>My data</title>
+		<inits>
+			<init>data</init>
+		</inits>
+	</data>
+	<data type="text">
+		<id>my_id</id>
+		<title>My id</title>
+	</data>
+	<data type="taskRef">
+		<id>my_relations_data</id>
+		<title>My relations</title>
+	</data>
+	<data type="i18n">
+		<id>my_relations_data_divider</id>
+		<title/>
+		<init>My relations data</init>
+	</data>
+	<data type="taskRef">
+		<id>my_working_data</id>
+		<title/>
+		<inits>
+			<init>working_data</init>
+		</inits>
+	</data>
+	<data type="taskRef">
+		<id>my_working_relations</id>
+		<title/>
+		<inits>
+			<init>relations</init>
+		</inits>
+	</data>
+	<data type="text">
+		<id>name</id>
+		<title>Name</title>
+	</data>
+	<data type="text">
+		<id>reference_to_add</id>
+		<title>Reference to add</title>
+		<event type="set">
+			<id>reference_to_add_set</id>
+			<actions phase="post">
+				<action id="action5">
+					<![CDATA[
+					referenced_cases: f.referenced_cases,
+					reference_to_add: f.reference_to_add;
+					if (reference_to_add.value !in referenced_cases.value) {
+					change referenced_cases value { referenced_cases.value +  reference_to_add.value}}
+					]]>
+				</action>
+			</actions>
+		</event>
+	</data>
+	<data type="text">
+		<id>reference_to_remove</id>
+		<title>Reference to remove</title>
+		<event type="set">
+			<id>reference_to_remove_set</id>
+			<actions phase="post">
+				<action id="action6">
+					<![CDATA[
+					referenced_cases: f.referenced_cases,
+					reference_to_remove: f.reference_to_remove;
+					if (reference_to_remove.value in referenced_cases.value) {
+					change referenced_cases value { referenced_cases.value -  reference_to_remove.value}}
+					]]>
+				</action>
+			</actions>
+		</event>
+	</data>
+	<data type="caseRef">
+		<id>referenced_cases</id>
+		<title>Chosen courses</title>
+	</data>
+	<data type="text">
+		<id>surname</id>
+		<title>Surname</title>
+	</data>
+	<data type="date">
+		<id>working_birthday</id>
+		<title>Birthday</title>
+	</data>
+	<data type="text">
+		<id>working_name</id>
+		<title>Name</title>
+	</data>
+	<data type="multichoice_map">
+		<id>working_referenced_cases</id>
+		<title>Available courses</title>
+	</data>
+	<data type="text">
+		<id>working_surname</id>
+		<title>Surname</title>
+	</data>
+	<transition>
+		<id>data</id>
+		<x>240</x>
+		<y>112</y>
+		<label>Data</label>
+		<dataGroup>
+			<id>data_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>my_id</id>
+				<logic>
+					<behavior>visible</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>1</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>name</id>
+				<logic>
+					<behavior>visible</behavior>
+				</logic>
+				<layout>
+					<x>1</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>1</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>surname</id>
+				<logic>
+					<behavior>visible</behavior>
+				</logic>
+				<layout>
+					<x>2</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>1</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>birthday</id>
+				<logic>
+					<behavior>visible</behavior>
+				</logic>
+				<layout>
+					<x>3</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>1</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+	</transition>
+	<transition>
+		<id>initialize_data</id>
+		<x>336</x>
+		<y>240</y>
+		<label>Initialize data</label>
+		<dataGroup>
+			<id>initialize_data_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>my_working_data</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+		<event type="finish">
+			<id>initialize_data_finish</id>
+			<actions phase="pre">
+				<action id="action1">
+					<![CDATA[
+					working_birthday: f.working_birthday,
+					birthday: f.birthday,
+					working_surname: f.working_surname,
+					surname: f.surname,
+					working_name: f.working_name,
+					name: f.name;
+					change name value { working_name.value; }
+					change surname value { working_surname.value; }
+					change birthday value { working_birthday.value; }
+					]]>
+				</action>
+			</actions>
+		</event>
+	</transition>
+	<transition>
+		<id>initialize_relations</id>
+		<x>656</x>
+		<y>240</y>
+		<label>Initialize relations</label>
+		<dataGroup>
+			<id>initialize_relations_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>my_working_relations</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>my_working_data</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>1</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+		<event type="assign">
+			<id>initialize_relations_assign</id>
+			<actions phase="pre">
+				<action id="action2">
+					<![CDATA[
+					working_referenced_cases: f.working_referenced_cases,
+					working_birthday: f.working_birthday,
+					birthday: f.birthday,
+					working_surname: f.working_surname,
+					surname: f.surname,
+					working_name: f.working_name,
+					name: f.name;
+					change working_name value { name.value; }
+					change working_surname value { surname.value; }
+					change working_birthday value { birthday.value; }
+					def possible_references = findCases { it.processIdentifier.eq("course_table").and(it.activePlaces.get("available_to_be_referenced").eq(1))}.collectEntries {
+					                        [(it.stringId): it.title + " " + it.stringId] 
+					                    }
+					change working_referenced_cases options {possible_references}
+					]]>
+				</action>
+			</actions>
+		</event>
+		<event type="finish">
+			<id>initialize_relations_finish</id>
+			<actions phase="pre">
+				<action id="action3">
+					<![CDATA[
+					my_relations_data: f.my_relations_data,
+					working_referenced_cases: f.working_referenced_cases,
+					referenced_cases: f.referenced_cases,
+					working_birthday: f.working_birthday,
+					birthday: f.birthday,
+					working_surname: f.working_surname,
+					surname: f.surname,
+					working_name: f.working_name,
+					name: f.name;
+					change name value { working_name.value; }
+					change surname value { working_surname.value; }
+					change birthday value { working_birthday.value; }
+					working_referenced_cases.value.each { reference_id ->
+					def reference_case = findCase({it._id.eq(reference_id)});
+					setData("interface_data", reference_case, ["reference_to_add": ["value": my_id.value, "type": "text"]]);
+					}
+					change referenced_cases value { working_referenced_cases.value; }
+					def reference_data_task_ids = findTasks{it.caseId.in(referenced_cases.value).and(it.transitionId.eq("data"))}.collect{it.stringId}
+					change my_relations_data value { reference_data_task_ids }
+					]]>
+				</action>
+			</actions>
+		</event>
+	</transition>
+	<transition>
+		<id>interface_data</id>
+		<x>432</x>
+		<y>112</y>
+		<label>Interface data</label>
+		<dataGroup>
+			<id>interface_data_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>reference_to_add</id>
+				<logic>
+					<behavior>hidden</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>2</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>reference_to_remove</id>
+				<logic>
+					<behavior>hidden</behavior>
+				</logic>
+				<layout>
+					<x>2</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>2</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+	</transition>
+	<transition>
+		<id>read</id>
+		<x>656</x>
+		<y>368</y>
+		<label>Read</label>
+		<dataGroup>
+			<id>read_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>my_data</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>my_relations_data_divider</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>1</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+				<component>
+					<name>divider</name>
+					<property key="dividerColor">black</property>
+					<property key="fontSize">12</property>
+				</component>
+			</dataRef>
+			<dataRef>
+				<id>my_relations_data</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>2</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+	</transition>
+	<transition>
+		<id>required_relations_deleted</id>
+		<x>656</x>
+		<y>304</y>
+		<label>Required relations deleted</label>
+	</transition>
+	<transition>
+		<id>update</id>
+		<x>976</x>
+		<y>240</y>
+		<label>Update</label>
+		<dataGroup>
+			<id>update_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>my_working_data</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>my_working_relations</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>1</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+		<event type="assign">
+			<id>update_assign</id>
+			<actions phase="pre">
+				<action id="action7">
+					<![CDATA[
+					referenced_cases: f.referenced_cases,
+					working_referenced_cases: f.working_referenced_cases,
+					working_birthday: f.working_birthday,
+					birthday: f.birthday,
+					working_surname: f.working_surname,
+					surname: f.surname,
+					working_name: f.working_name,
+					name: f.name;
+					change working_name value { name.value; }
+					change working_surname value { surname.value; }
+					change working_birthday value { birthday.value; }
+					def possible_references = findCases { it.processIdentifier.eq(workspace + "course_table").and(it.activePlaces.get("available_to_be_referenced").eq(1))}.collectEntries { 
+					                        [(it.stringId): it.title + " " + it.stringId] 
+					                    }
+					change working_referenced_cases options {possible_references}
+					change working_referenced_cases value { referenced_cases.value; }
+					]]>
+				</action>
+			</actions>
+		</event>
+		<event type="finish">
+			<id>update_finish</id>
+			<actions phase="pre">
+				<action id="action8">
+					<![CDATA[
+					my_relations_data: f.my_relations_data,
+					working_referenced_cases: f.working_referenced_cases,
+					referenced_cases: f.referenced_cases,
+					working_birthday: f.working_birthday,
+					birthday: f.birthday,
+					working_surname: f.working_surname,
+					surname: f.surname,
+					working_name: f.working_name,
+					name: f.name;
+					change name value { working_name.value; }
+					change surname value { working_surname.value; }
+					change birthday value { working_birthday.value; }
+					def added_references = working_referenced_cases.value - referenced_cases.value
+					added_references.each { reference_id ->
+					def reference_case = findCase({it._id.eq(reference_id)});
+					setData("interface_data", reference_case, ["reference_to_add": ["value": my_id.value, "type": "text"]]);
+					}
+					def removed_references = referenced_cases.value - working_referenced_cases.value
+					removed_references.each { reference_id ->
+					def reference_case = findCase({it._id.eq(reference_id)});
+					setData("interface_data", reference_case, ["reference_to_remove": ["value": my_id.value, "type": "text"]]);
+					}
+					change referenced_cases value { working_referenced_cases.value; }
+					def reference_data_task_ids = findTasks{it.caseId.in(referenced_cases.value).and(it.transitionId.eq("data"))}.collect{it.stringId}
+					change my_relations_data value { reference_data_task_ids }
+					]]>
+				</action>
+			</actions>
+		</event>
+	</transition>
+	<transition>
+		<id>working_data</id>
+		<x>336</x>
+		<y>112</y>
+		<label>Working data</label>
+		<dataGroup>
+			<id>working_data_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>my_id</id>
+				<logic>
+					<behavior>visible</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>1</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>working_name</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>1</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>1</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>working_surname</id>
+				<logic>
+					<behavior>editable</behavior>
+					<behavior>required</behavior>
+				</logic>
+				<layout>
+					<x>2</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>1</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+			<dataRef>
+				<id>working_birthday</id>
+				<logic>
+					<behavior>editable</behavior>
+				</logic>
+				<layout>
+					<x>3</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>1</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+	</transition>
+	<transition>
+		<id>working_relations</id>
+		<x>560</x>
+		<y>112</y>
+		<label>Working relations</label>
+		<dataGroup>
+			<id>relations_0</id>
+			<cols>4</cols>
+			<layout>grid</layout>
+			<dataRef>
+				<id>working_referenced_cases</id>
+				<logic>
+					<behavior>editable</behavior>
+					<behavior>required</behavior>
+				</logic>
+				<layout>
+					<x>0</x>
+					<y>0</y>
+					<rows>1</rows>
+					<cols>4</cols>
+					<template>material</template>
+					<appearance>outline</appearance>
+				</layout>
+			</dataRef>
+		</dataGroup>
+	</transition>
+	<place>
+		<id>available_to_be_referenced</id>
+		<x>496</x>
+		<y>368</y>
+		<label>Available to be referenced</label>
+		<tokens>0</tokens>
+		<static>false</static>
+	</place>
+	<place>
+		<id>created</id>
+		<x>176</x>
+		<y>240</y>
+		<label>created</label>
+		<tokens>1</tokens>
+		<static>false</static>
+	</place>
+	<place>
+		<id>data_initialized</id>
+		<x>496</x>
+		<y>240</y>
+		<label>data initialized</label>
+		<tokens>0</tokens>
+		<static>false</static>
+	</place>
+	<place>
+		<id>relations_initialized</id>
+		<x>816</x>
+		<y>240</y>
+		<label>Relations initialized</label>
+		<tokens>0</tokens>
+		<static>false</static>
+	</place>
+	<arc>
+		<id>a1</id>
+		<type>regular</type>
+		<sourceId>created</sourceId>
+		<destinationId>initialize_data</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a11</id>
+		<type>regular</type>
+		<sourceId>initialize_data</sourceId>
+		<destinationId>available_to_be_referenced</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a14</id>
+		<type>read</type>
+		<sourceId>available_to_be_referenced</sourceId>
+		<destinationId>read</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a2</id>
+		<type>regular</type>
+		<sourceId>initialize_data</sourceId>
+		<destinationId>data_initialized</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a3</id>
+		<type>regular</type>
+		<sourceId>data_initialized</sourceId>
+		<destinationId>initialize_relations</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a4</id>
+		<type>regular</type>
+		<sourceId>initialize_relations</sourceId>
+		<destinationId>relations_initialized</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a5</id>
+		<type>read</type>
+		<sourceId>relations_initialized</sourceId>
+		<destinationId>update</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a6</id>
+		<type>regular</type>
+		<sourceId>relations_initialized</sourceId>
+		<destinationId>required_relations_deleted</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+	<arc>
+		<id>a7</id>
+		<type>regular</type>
+		<sourceId>required_relations_deleted</sourceId>
+		<destinationId>data_initialized</destinationId>
+		<multiplicity>1</multiplicity>
+	</arc>
+</document>

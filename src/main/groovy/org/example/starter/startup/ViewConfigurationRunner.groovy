@@ -58,6 +58,7 @@ class ViewConfigurationRunner extends AbstractOrderedCommandLineRunner {
     }
 
     void createFolders() {
+        // TODO: release/6.6.0 - translations
         def defaultFolder = MenuItemTemplateHolder.get(FolderTemplate.IDENTIFIER, "/", new I18nString("Default Menu Item")).get()
         defaultFolder.menuIcon = "device_hub"
         defaultFolder.autoSelect = true
@@ -347,13 +348,13 @@ class ViewConfigurationRunner extends AbstractOrderedCommandLineRunner {
         Case dashboard = dashboardManagementService.findDashboardManagement("main_dashboard")
         def dashboardConfig = new DashboardManagementBody("main_dashboard", new I18nString("Main Dashboard", Map.of("sk", "Hlavný Dashboard", "de", "Haupt-Dashboard", "cz", "Hlavní Dashboard")))
         Case tutorialDashboardItem = dashboardItemService.getOrCreate(toDashboardItem(tutorialFolder))
-        Case settingsDashboardItem = dashboardItemService.getOrCreate(toDashboardItem(settingsFolder))
         Case serviceDeskDashboardItem = dashboardItemService.getOrCreate(toDashboardItem(serviceDeskFolder))
+        Case settingsDashboardItem = dashboardItemService.getOrCreate(toDashboardItem(settingsFolder))
         dashboardConfig.dashboardItems = [
                 (tutorialDashboardItem.stringId): tutorialDashboardItem.getFieldValue("item_name"),
-                (settingsDashboardItem.stringId): settingsDashboardItem.getFieldValue("item_name"),
-                (serviceDeskDashboardItem.stringId): serviceDeskDashboardItem.getFieldValue("item_name")
-        ]
+                (serviceDeskDashboardItem.stringId): serviceDeskDashboardItem.getFieldValue("item_name"),
+                (settingsDashboardItem.stringId): settingsDashboardItem.getFieldValue("item_name")
+        ] as HashMap<String, I18nString>
         dashboardConfig.logo = "assets/netgrif_logo.svg"
         dashboardConfig.simpleDashboard = true
         Thread.sleep(1000)
