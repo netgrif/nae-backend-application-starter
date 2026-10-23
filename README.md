@@ -11,12 +11,15 @@ possibilities of process driven application.
 The Application engine has some requirements for runtime environment. The following table is summary of requirements to
 run and use the engine:
 
-| Name                                                   | Version | Description                                                     | Recommendation                                                         |
-|--------------------------------------------------------|---------|-----------------------------------------------------------------|------------------------------------------------------------------------|
-| [Java](https://openjdk.java.net/)                      | 11+     | Java Development Kit                                            | [OpenJDK 11](https://openjdk.java.net/install/)                        |
-| [Redis](https://redis.io/)                             | 5+      | Key-value in-memory database used for user sessions and caching | [Redis 6.2.6](https://redis.io/download)                               |
-| [MongoDB](https://www.mongodb.com/)                    | 4.4+    | Main document store database                                    | [MongoDB 4.4.11](https://docs.mongodb.com/v4.4/installation/)          |
-| [Elasticsearch](https://www.elastic.co/elasticsearch/) | 7.17+   | Index database used for better application search               | [Elasticsearch 7.17.3](https://www.elastic.co/downloads/elasticsearch) |
+| Name                                                   | Version | Description                                                     | Recommendation                                                          |
+|--------------------------------------------------------|---------|-----------------------------------------------------------------|-------------------------------------------------------------------------|
+| [Java](https://adoptium.net/)                          | 11 - 17 | Java Development Kit                                            | [Eclipse Temurin 11](https://adoptium.net/temurin/releases/?version=11) |
+| [Maven](https://maven.apache.org/)                     | 3.6.3+  | Build and dependency management tool                            | Bundled [Maven Wrapper](#build-and-run) (Maven 3.9.9)                   |
+| [Redis](https://redis.io/)                             | 6+      | Key-value in-memory database used for user sessions and caching | [Redis 6.2.6](https://redis.io/download)                                |
+| [MongoDB](https://www.mongodb.com/)                    | 4.4+    | Main document store database                                    | [MongoDB 4.4.11](https://docs.mongodb.com/v4.4/installation/)           |
+| [Elasticsearch](https://www.elastic.co/elasticsearch/) | 7.17+   | Index database used for better application search               | [Elasticsearch 7.17.4](https://www.elastic.co/downloads/elasticsearch)  |
+
+Newer Java versions (18+) are not supported, because Groovy 3 used by NAE can not process their class files.
 
 If you are planning on developing docker container based solution you can use our [docker-compose](docker-compose.yml)
 configuration to run all necessary databases to develop with NAE.
@@ -40,6 +43,24 @@ You should generate own certificates to encrypt token used by NAE.
 ```shell
  mkdir -p src/main/resources/certificates && cd src/main/resources/certificates && openssl genrsa -out keypair.pem 4096 && openssl rsa -in keypair.pem -pubout -out public.crt && openssl pkcs8 -topk8 -inform PEM -outform DER -nocrypt -in keypair.pem -out private.der && cd ../../../..
 ```
+
+## Build and run
+
+IntelliJ IDEA comes with Maven built in, but other editors (e.g. Visual Studio Code) and the command line need Maven
+installed separately. To avoid that, the project contains [Maven Wrapper](https://maven.apache.org/wrapper/) which
+downloads the correct Maven version automatically on first use. You only need a JDK on your `PATH` or `JAVA_HOME`
+pointing to it.
+
+```shell
+# Linux / macOS
+./mvnw clean package
+# Windows
+mvnw.cmd clean package
+```
+
+You can also use your own Maven installation (version 3.6.3 or newer) and run `mvn` instead of `./mvnw`.
+
+NAE snapshot versions are not published to Maven Central, so the snapshot repository is configured in `pom.xml`.
 
 ## Class Description
 
