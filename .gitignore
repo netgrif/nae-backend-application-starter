@@ -150,3 +150,11 @@ buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
 
+
+### NAE
+# Generated security certificates (see README)
+src/main/resources/certificates/*
+!src/main/resources/certificates/.gitkeep
+# Runtime data
+log/
+storage/
